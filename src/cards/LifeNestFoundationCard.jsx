@@ -1,40 +1,45 @@
-import { withStyles } from '@ellucian/react-design-system/core/styles';
-import { spacing40 } from '@ellucian/react-design-system/core/styles/tokens';
-import { Typography, TextLink } from '@ellucian/react-design-system/core';
-import PropTypes from 'prop-types';
-import React from 'react';
-
-const styles = () => ({
-    card: {
-        marginTop: 0,
-        marginRight: spacing40,
-        marginBottom: 0,
-        marginLeft: spacing40
-    }
-});
+/* eslint-disable react/prop-types */
+import React, {useState, useEffect} from 'react';
+import {useData, useExtensionControl} from '@ellucian/experience-extension/extension-utilities';
+import {
+    ButtonGroup,
+    Button,
+    Typography
+} from '@ellucian/react-design-system/core';
+import { Link } from 'react-router-dom';
 
 const LifeNestFoundationCard = (props) => {
-    const { classes } = props;
+    const {getExtensionJwt} = useData();
+    const {cardControl: {navigateToPage}} = props;
+    const [jwt, setJwt] = useState('');
+
+    useEffect(() => {
+        async function getToken(){
+            const token = await getExtensionJwt();
+            setJwt(token);
+        }
+        getToken();
+    }, [jwt, setJwt]);
+
+    const onTokenClick = async() => {
+        const token = await getExtensionJwt();
+        setJwt(token);
+    }
+
+    const onPageClick = () => {
+        navigateToPage({route: '/'});
+    }
 
     return (
-        <div className={classes.card}>
-            <Typography variant="h2">
-                Hello LifeNestFoundation World
-            </Typography>
-            <Typography>
-                <span>
-                    For sample extensions, visit the Ellucian Developer
-                </span>
-                <TextLink href="https://github.com/ellucian-developer/experience-extension-sdk-samples" target="_blank">
-                     GitHub
-                </TextLink>
-            </Typography>
-        </div>
+    <div>
+        <ButtonGroup>
+            <Button onClick={onTokenClick}>Get Token</Button>
+            <Button onClick={onPageClick}>go to page</Button>
+        </ButtonGroup>
+        <br />
+        <Typography>Token: {jwt}</Typography>
+    </div>
     );
-};
+}
 
-LifeNestFoundationCard.propTypes = {
-    classes: PropTypes.object.isRequired
-};
-
-export default withStyles(styles)(LifeNestFoundationCard);
+export default LifeNestFoundationCard;
