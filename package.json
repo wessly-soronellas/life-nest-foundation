@@ -17,11 +17,14 @@
     "@ellucian/ds-icons": "https://cdn.elluciancloud.com/assets/EDS2/6.3.0/umd/path_design_system_icons.tgz",
     "@ellucian/experience-extension": "https://cdn.elluciancloud.com/assets/SDK/5.6.0/ellucian-experience-extension-5.6.0.tgz",
     "@ellucian/react-design-system": "https://cdn.elluciancloud.com/assets/EDS2/6.3.0/umd/path_design_system.tgz",
+    "axios": "^0.27.2",
+    "install": "^0.13.0",
     "moment": "2.29.3",
     "prop-types": "15.7.2",
     "react": "16.9.0",
     "react-dom": "16.9.0",
     "react-intl": "5.12.5",
+    "react-query": "^3.39.1",
     "react-router-dom": "5.2.0"
   },
   "devDependencies": {
