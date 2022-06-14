@@ -8,9 +8,11 @@ import {
     CardMedia,
     CircularProgress,
     Typography,
-    IconButton,
-    NotificationBadge,
-    Tooltip
+    Table,
+    TableHead,
+    TableRow,
+    TableCell,
+    TableBody
 } from '@ellucian/react-design-system/core';
 import {Icon} from '@ellucian/ds-icons/lib';
 import {
@@ -22,7 +24,7 @@ import {
     colorFillAlertError
  } from '@ellucian/react-design-system/core/styles/tokens';
  import { useCardControl, useCardInfo, useExtensionControl, useUserInfo } from '@ellucian/experience-extension/extension-utilities';
- import { ProfileDashboardProvider, useProfileDashboard } from '../context/profile-dashboard';
+ import { MealPlanProvider, useMealPlanInformation } from '../context/meal-plan.context';
 
 
  const styles = theme => ({
@@ -43,15 +45,10 @@ function MealPlanWidget(props) {
     // Experience SDK hooks
     const { navigateToPage } = useCardControl();
     const { setErrorMessage, setLoadingStatus } = useExtensionControl();
-    const {data, isLoading, isError} = useProfileDashboard();
-
-    // look for meal plan data
-    const {meal: mealData} = data;
-    const {meal: mealLoading} = isLoading;
-    const {meal: mealError} = isError;
+    const {data: mealData, isLoading: mealLoading, isError: mealIsError, error: mealError} = useMealPlanInformation();
 
     useEffect(() => {
-        setLoadingStatus(mealLoading);
+        console.log(mealLoading);
     }, [mealLoading])
 
     useEffect(() => {
@@ -77,11 +74,51 @@ function MealPlanWidget(props) {
     }, [navigateToPage])
 
     return (
-        <div className={classes.root}>
-            <div className={classes.content}>
-                {JSON.stringify(mealData)}
+       <>
+        {mealData && (
+            <div>
+                <Table className={classes.table}>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>EagleCard Information</TableCell>
+                            <TableCell align="right">Balance</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                    {mealData.boardPlan.map(n => {
+                    return (
+                            <TableRow key={n.boardPlanId}>
+                                <TableCell>
+                                    <Typography gutterBottom variant="h5">{`${n.boardPlan}`}</Typography>
+                                </TableCell>
+                                <TableCell>
+                                    <div align="right">
+                                        <CircularProgress variant="static" value={((parseInt(n.semQtrRemaining, 10))/n.semQtrAllowed) * 100} />
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        );
+                    })}
+                    {mealData.storedValue.map(n => {
+                        return (
+                            <TableRow key={n.typeId}>
+                                <TableCell component="th" scope="row">
+                                    <Typography className={classes.title} variant="h5" gutterButtom>{n.name}</Typography>
+                                </TableCell>
+                                <TableCell align="right">
+                                    <Typography classes={classes.item} variant="h6" gutterButtom>
+                                    {new Intl.NumberFormat('en-US',
+                                    {style: 'currency', currency: 'USD'}).format(n.balance)}
+                                    </Typography>
+                                </TableCell>
+                            </TableRow>
+                        );
+                    })}
+                    </TableBody>
+                </Table>
             </div>
-        </div>
+        )}
+       </>
     );
 }
 
@@ -89,14 +126,14 @@ MealPlanWidget.propTypes = {
     classes: PropTypes.object.isRequired
 };
 
-const ProfileDashboardWithStyle = withStyles(styles)(MealPlanWidget);
+const MealPlanWithStyle = withStyles(styles)(MealPlanWidget);
 
-function ProfileDashboardWithProviders(){
+function MealPlanWithProviders(){
     return (
-        <ProfileDashboardProvider>
-            <ProfileDashboardWithStyle />
-        </ProfileDashboardProvider>
+        <MealPlanProvider>
+            <MealPlanWithStyle />
+        </MealPlanProvider>
     )
 }
 
-export default ProfileDashboardWithProviders;
+export default MealPlanWithProviders;

@@ -7,6 +7,8 @@ import {
     CardContent,
     CardMedia,
     CircularProgress,
+    Dropdown,
+    DropdownItem,
     Typography,
     IconButton,
     NotificationBadge,
@@ -22,7 +24,7 @@ import {
     colorFillAlertError
  } from '@ellucian/react-design-system/core/styles/tokens';
  import { useCardControl, useCardInfo, useExtensionControl, useUserInfo } from '@ellucian/experience-extension/extension-utilities';
- import { ProfileDashboardProvider, useProfileDashboard } from '../context/profile-dashboard';
+ import { AccountBalanceProvider, useAccountBalance } from '../context/account-balance.context';
 
 
  const styles = theme => ({
@@ -43,12 +45,10 @@ function AccountBalanceWidget(props) {
     // Experience SDK hooks
     const { navigateToPage } = useCardControl();
     const { setErrorMessage, setLoadingStatus } = useExtensionControl();
-    const {data, isLoading, isError} = useProfileDashboard();
+    const {data:balanceData, isLoading: balanceLoading, isError: balanceIsError, error: balanceError} = useAccountBalance();
+    const [termSelected, setTermSelected] = useState();
+    const [dropdownOpen, setDropdownOpen] = useState(false);
 
-    // look for balance data
-    const {balance: balanceData} = data;
-    const {balance: balanceLoading} = isLoading;
-    const {balance: balanceError} = isError;
 
 
     useEffect(() => {
@@ -56,7 +56,7 @@ function AccountBalanceWidget(props) {
     }, [balanceLoading])
 
     useEffect(() => {
-        if (data) {
+        if (balanceData) {
             console.log(balanceData);
         }
     }, [balanceData])
@@ -77,11 +77,32 @@ function AccountBalanceWidget(props) {
         navigateToPage({route: '/'});
     }, [navigateToPage])
 
+    const handleChange = event => {
+        setTermSelected(event.target.value)
+    }
+
     return (
         <div className={classes.root}>
-            <div className={classes.content}>
-                {JSON.stringify(balanceData)}
-            </div>
+            {balanceData && (
+                <Dropdown
+                    label="Terms"
+                    onChange={handleChange}
+                    value={termSelected}
+                    open={dropdownOpen}
+                    onOpen={() => setDropdownOpen(true)}
+                    onClose={() => setDropdownOpen(false)}
+                >
+                     {balanceData.Periods.map((period) => {
+                        return (
+                            <DropdownItem
+                            key={period.Id}
+                            label={period.Description}
+                            value={period.Id}
+                        />
+                        )})
+                    }
+                </Dropdown>
+            )}
         </div>
     );
 }
@@ -90,14 +111,14 @@ AccountBalanceWidget.propTypes = {
     classes: PropTypes.object.isRequired
 };
 
-const ProfileDashboardWithStyle = withStyles(styles)(AccountBalanceWidget);
+const AccountBalanceWithStyle = withStyles(styles)(AccountBalanceWidget);
 
-function ProfileDashboardWithProviders(){
+function AccountBalanceWithProviders(){
     return (
-        <ProfileDashboardProvider>
-            <ProfileDashboardWithStyle />
-        </ProfileDashboardProvider>
+        <AccountBalanceProvider>
+            <AccountBalanceWithStyle />
+        </AccountBalanceProvider>
     )
 }
 
-export default ProfileDashboardWithProviders;
+export default AccountBalanceWithProviders;

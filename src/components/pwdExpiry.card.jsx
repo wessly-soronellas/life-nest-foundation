@@ -10,7 +10,10 @@ import {
     Typography,
     IconButton,
     NotificationBadge,
-    Tooltip
+    Tooltip,
+    StatusLabel,
+    Illustration,
+    IMAGES
 } from '@ellucian/react-design-system/core';
 import {Icon} from '@ellucian/ds-icons/lib';
 import {
@@ -22,7 +25,7 @@ import {
     colorFillAlertError
  } from '@ellucian/react-design-system/core/styles/tokens';
  import { useCardControl, useCardInfo, useExtensionControl, useUserInfo } from '@ellucian/experience-extension/extension-utilities';
- import { ProfileDashboardProvider, useProfileDashboard } from '../context/profile-dashboard';
+ import { PasswordExpirationProvider, usePasswordExpiration } from '../context/password-expiration.context';
 
 
  const styles = theme => ({
@@ -40,25 +43,23 @@ import {
 
 function PasswordExpirationWidget(props) {
     const {classes} = props;
+    const [status, setStatus] = useState('success');
     // Experience SDK hooks
     const { navigateToPage } = useCardControl();
     const { setErrorMessage, setLoadingStatus } = useExtensionControl();
-    const {data, isLoading, isError} = useProfileDashboard();
+    const {data: pwdData, isLoading: pwdLoading, isError: pwdIsError, error: pwdError} = usePasswordExpiration();
 
-    // look for password data
-    const {password: pwdData} = data;
-    const {password: pwdLoading} = isLoading;
-    const {password: pwdError} = isError;
 
     useEffect(() => {
-        setLoadingStatus(pwdLoading);
+        console.log(pwdLoading);
     }, [pwdLoading])
 
     useEffect(() => {
-        if (pwdData) {
-            console.log(pwdData);
-        }
+       if (pwdData){
+        console.log(pwdData)
+       }
     }, [pwdData])
+
 
     useEffect(() => {
         if (pwdError) {
@@ -78,9 +79,25 @@ function PasswordExpirationWidget(props) {
 
     return (
         <div className={classes.root}>
-            <div className={classes.content}>
-                {JSON.stringify(pwdData)}
-            </div>
+            {pwdData && (
+                <div className={classes.card}>
+                    <CardContent className={classes.centerContent}>
+                        <Illustration name={IMAGES.CALENDAR} />
+                        <Typography variant="h3" id="pwd-CardContentDescription" gutterBottom>Days until password expires:</Typography>
+                        <StatusLabel
+                            id="pwd-StatusLabel"
+                            text={`${pwdData.daysLeft}`}
+                            type={status}
+                        />
+                        <Typography
+                        className={classes.cardContentDescription}
+                        variant="body2"
+                        id="pwd-CardContentCaption"
+                        gutterBottom>
+                        Visit our password management site to change your password</Typography>
+                    </CardContent>
+                </div>
+            )}
         </div>
     );
 }
@@ -89,14 +106,14 @@ PasswordExpirationWidget.propTypes = {
     classes: PropTypes.object.isRequired
 };
 
-const ProfileDashboardWithStyle = withStyles(styles)(PasswordExpirationWidget);
+const PasswordExpirationWithStyle = withStyles(styles)(PasswordExpirationWidget);
 
-function ProfileDashboardWithProviders(){
+function PasswordExpirationWithProviders(){
     return (
-        <ProfileDashboardProvider>
-            <ProfileDashboardWithStyle />
-        </ProfileDashboardProvider>
+        <PasswordExpirationProvider>
+            <PasswordExpirationWithStyle />
+        </PasswordExpirationProvider>
     )
 }
 
-export default ProfileDashboardWithProviders;
+export default PasswordExpirationWithProviders;

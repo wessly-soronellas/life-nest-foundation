@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@ellucian/react-design-system/core/styles';
 import {
+    Button,
     Card,
     CardHeader,
     CardContent,
@@ -10,7 +11,11 @@ import {
     Typography,
     IconButton,
     NotificationBadge,
-    Tooltip
+    StatusLabel,
+    Tooltip,
+    Table,
+    TableRow,
+    TableCell
 } from '@ellucian/react-design-system/core';
 import {Icon} from '@ellucian/ds-icons/lib';
 import {
@@ -22,7 +27,7 @@ import {
     colorFillAlertError
  } from '@ellucian/react-design-system/core/styles/tokens';
  import { useCardControl, useCardInfo, useExtensionControl, useUserInfo } from '@ellucian/experience-extension/extension-utilities';
- import { ProfileDashboardProvider, useProfileDashboard } from '../context/profile-dashboard';
+ import { ContactInformationProvider, useContactInformation } from '../context/contact-info.context';
 
 
  const styles = theme => ({
@@ -43,12 +48,43 @@ function ContactInformationWidget(props) {
     // Experience SDK hooks
     const { navigateToPage } = useCardControl();
     const { setErrorMessage, setLoadingStatus } = useExtensionControl();
-    const {data, isLoading, isError} = useProfileDashboard();
+    const {data: contactData, isLoading: contactLoading, isError: contactIsError, error: contactError} = useContactInformation();
 
-    // look for contact data
-    const {contact: contactData} = data;
-    const {contact: contactLoading} = isLoading;
-    const {contact: contactError} = isError;
+    // create shape for caraousel
+    /*
+        index order:
+        0 - profile information
+        1 - contact information
+        2 - status information
+
+    */
+    const contactInformationShape = [
+        {
+            preferredName: "",
+            pronouns: "",
+            gender: "",
+            birthdate: "",
+            studentNumber: ""
+
+        },
+        {
+            addresses: [],
+            phones: [],
+            emails: []
+
+        },
+        {
+            daysSince: {
+                address: "",
+                phone: "",
+                email: ""
+            },
+            addressDate: "",
+            emailDate:"",
+            phoneDate:"",
+            lastUpdated:""
+        }
+    ]
 
     useEffect(() => {
         setLoadingStatus(contactLoading);
@@ -79,7 +115,55 @@ function ContactInformationWidget(props) {
     return (
         <div className={classes.root}>
             <div className={classes.content}>
-                {JSON.stringify(contactData)}
+                {contactData && (
+                    <div>
+                        <h3>Contact Information</h3>
+                        <Table>
+                            <TableRow>
+                                <TableCell>
+                                    <Typography>
+                                        Address:
+                                    </Typography>
+                                </TableCell>
+                                <TableCell>
+                                    <StatusLabel
+                                        text={(contactData.daysSince.daysSinceAddressConfirmed < 180 ) ? "OKAY" : "UPDATE"}
+                                        type={(contactData.daysSince.daysSinceAddressConfirmed < 180 ) ? "success" : "error"}
+                                    />
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>
+                                    <Typography>
+                                        Phone:
+                                    </Typography>
+                                </TableCell>
+                                <TableCell>
+                                    <StatusLabel
+                                        text={(contactData.daysSince.daysSincePhoneConfirmed < 180 ) ? "OKAY" : "UPDATE"}
+                                        type={(contactData.daysSince.daysSincePhoneConfirmed < 180 ) ? "success" : "error"}
+                                    />
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>
+                                    <Typography>
+                                        Email:
+                                    </Typography>
+                                </TableCell>
+                                <TableCell>
+                                    <StatusLabel
+                                        text={(contactData.daysSince.daysSinceEmailConfirmed < 180 ) ? "OKAY" : "UPDATE"}
+                                        type={(contactData.daysSince.daysSinceEmailConfirmed < 180 ) ? "success" : "error"}
+                                    />
+                                </TableCell>
+                            </TableRow>
+                        </Table>
+                        <Button>
+                            Confirm Information
+                        </Button>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -89,14 +173,14 @@ ContactInformationWidget.propTypes = {
     classes: PropTypes.object.isRequired
 };
 
-const ProfileDashboardWithStyle = withStyles(styles)(ContactInformationWidget);
+const ContactInformationWithStyle = withStyles(styles)(ContactInformationWidget);
 
-function ProfileDashboardWithProviders(){
+function ContactInformationWithProviders(){
     return (
-        <ProfileDashboardProvider>
-            <ProfileDashboardWithStyle />
-        </ProfileDashboardProvider>
+        <ContactInformationProvider>
+            <ContactInformationWithStyle />
+        </ContactInformationProvider>
     )
 }
 
-export default ProfileDashboardWithProviders;
+export default ContactInformationWithProviders;
