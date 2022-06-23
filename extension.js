@@ -24,17 +24,17 @@ module.exports = {
                               {AND: 
                                   [
                                       {OR:
-                                          [{startOn: {BEFORE: $current}}, {startOn: {EQ: $current}} ]
+                                          [{endOn: {AFTER: $current}}, {endOn: {EQ: $current}} ]
                                       }
-                                      , {endOn: {AFTER: $current}}
                                   ]
                               }) {
                           edges {
                             node{
-                              id
-                                      code
-                                      startOn
-                                      endOn
+                                id
+                                code
+                                startOn
+                                endOn
+                                title
                             }
                           }
                         }

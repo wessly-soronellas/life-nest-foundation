@@ -80,23 +80,21 @@ function PasswordExpirationWidget(props) {
     return (
         <div className={classes.root}>
             {pwdData && (
-                <div className={classes.card}>
-                    <CardContent className={classes.centerContent}>
-                        <Illustration name={IMAGES.CALENDAR} />
-                        <Typography variant="h3" id="pwd-CardContentDescription" gutterBottom>Days until password expires:</Typography>
-                        <StatusLabel
-                            id="pwd-StatusLabel"
-                            text={`${pwdData.daysLeft}`}
-                            type={status}
-                        />
-                        <Typography
-                        className={classes.cardContentDescription}
-                        variant="body2"
-                        id="pwd-CardContentCaption"
-                        gutterBottom>
-                        Visit our password management site to change your password</Typography>
-                    </CardContent>
-                </div>
+                <>
+                    <Illustration name={IMAGES.CALENDAR} />
+                    <Typography variant="h3" id="pwd-CardContentDescription" gutterBottom>Days until password expires:</Typography>
+                    <StatusLabel
+                        id="pwd-StatusLabel"
+                        text={`${pwdData.daysLeft}`}
+                        type={status}
+                    />
+                    <Typography
+                    className={classes.cardContentDescription}
+                    variant="body2"
+                    id="pwd-CardContentCaption"
+                    gutterBottom>
+                    Visit our password management site to change your password</Typography>
+                </>
             )}
         </div>
     );

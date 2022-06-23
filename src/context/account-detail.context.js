@@ -17,18 +17,24 @@ function AccountDetailProviderInternal({children}) {
     const {baseApi: base} = configuration;
 
     const [accountDetailCachedData, setAccountDetailCachedData] = useState();
+    const [accountBalanceCachedData, setAccountBalanceCachedData] = useState();
+    const [selectedTerm, setSelectedTerm] = useState('default');
 
     const currentTermQuery = useQuery(
-        ["currentTerm", {getExtensionJwt, base, endpoint: 'account/balance', method: 'POST'}],
-        fetchProfileData
+        ["currentTerm", {getEthosQuery}],
+        fetchCurrentTerm
     )
     const accountDetailQuery = useQuery(
-        ["accountDetail", {getExtensionJwt, base, endpoint: 'account/balance', method: 'POST'}],
+        ["accountDetail", {getExtensionJwt, getEthosQuery, base, endpoint: 'account/detail', method: 'POST', term: selectedTerm}],
+        fetchBalanceDetail
+    )
+    const balanceQuery = useQuery(
+        ["accountBalance", {getExtensionJwt, base, endpoint: 'account/balance', method: 'POST'}],
         fetchProfileData
     )
 
-
-    const {data: termData, isLoading: termLoading, isError: termIsError, error: termError} = currentTermQuery;
+    const {data: balanceData, isLoading: balanceLoading, isError: balanceIsError, error: balanceError} = balanceQuery;
+    const {data: currentTermData, isLoading: currentTermLoading, isError: currentTermIsError, error: currentTermError} = currentTermQuery;
     const {data: detailData, isLoading: detailLoading, isError: detailIsError, error: detailError} = accountDetailQuery;
 
 
@@ -41,17 +47,45 @@ function AccountDetailProviderInternal({children}) {
         }
     }, [accountDetailCachedData, detailData, detailError, detailLoading]);
 
+    const contextValueBalance = useMemo(() => {
+        return {
+            balance: {
+                balanceData: balanceData || accountBalanceCachedData,
+                balanceIsError,
+                balanceLoading,
+                balanceError
+            },
+            currentTerm: {
+                currentTermData,
+                currentTermLoading,
+                currentTermIsError,
+                currentTermError
+            },
+            selectedTerm,
+            setTerm: (term) => setSelectedTerm(term),
+            detail: {
+                detailData,
+                detailLoading,
+                detailIsError,
+                detailError
+            }
+        }
+    }, [accountBalanceCachedData, balanceData, balanceError, balanceLoading, detailData, detailError, detailLoading]);
+
+    useEffect(() => {
+        console.log(contextValueBalance);
+    }, [selectedTerm]);
 
     useEffect(() => {
         console.log('AccountDetailProvider mounted');
-        console.log('ContextValue', contextValueDetail);
+        console.log('AccountBalanceContext', contextValueBalance);
         return () => {
             console.log('AccountDetailProvider unmounted')
         }
     }, []);
 
     return (
-        <Context.Provider value={contextValueDetail}>
+        <Context.Provider value={contextValueBalance}>
             {children}
         </Context.Provider>
     )

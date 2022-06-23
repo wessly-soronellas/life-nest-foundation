@@ -105,7 +105,7 @@ function ContactInformationWidget(props) {
                 iconColor: colorFillAlertError
             });
         }
-    }, [contactError, setErrorMessage]);
+    }, [contactIsError, contactError, setErrorMessage]);
 
     const onTransactionsClick = useCallback(() => {
         // open the page

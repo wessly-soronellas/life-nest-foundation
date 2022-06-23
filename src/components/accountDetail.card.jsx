@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@ellucian/react-design-system/core/styles';
 import {
+    Button,
     Card,
     CardHeader,
     CardContent,
@@ -12,7 +13,12 @@ import {
     Typography,
     IconButton,
     NotificationBadge,
-    Tooltip
+    Tooltip,
+    Table,
+    TableHead,
+    TableBody,
+    TableRow,
+    TableCell
 } from '@ellucian/react-design-system/core';
 import {Icon} from '@ellucian/ds-icons/lib';
 import {
@@ -24,7 +30,7 @@ import {
     colorFillAlertError
  } from '@ellucian/react-design-system/core/styles/tokens';
  import { useCardControl, useCardInfo, useExtensionControl, useUserInfo } from '@ellucian/experience-extension/extension-utilities';
- import { AccountBalanceProvider, useAccountBalance } from '../context/account-balance.context';
+ import { AccountDetailProvider, useAccountDetail } from '../context/account-detail.context';
 
 
  const styles = theme => ({
@@ -45,21 +51,45 @@ function AccountBalanceWidget(props) {
     // Experience SDK hooks
     const { navigateToPage } = useCardControl();
     const { setErrorMessage, setLoadingStatus } = useExtensionControl();
-    const {data:balanceData, isLoading: balanceLoading, isError: balanceIsError, error: balanceError} = useAccountBalance();
+    const {
+        balance: {
+            balanceData,
+            balanceIsError,
+            balanceLoading,
+            balanceError
+        },
+        selectedTerm,
+        setTerm,
+        currentTerm: {
+            currentTermData,
+            currentTermLoading,
+            currentTermIsError,
+            currentTermError
+        },
+        detail: {
+            detailData,
+            detailLoading,
+            detailIsError,
+            detailError
+        }
+    } = useAccountDetail();
     const [termSelected, setTermSelected] = useState();
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
 
 
     useEffect(() => {
-        setLoadingStatus(balanceLoading);
-    }, [balanceLoading])
+        setLoadingStatus((balanceLoading || detailLoading));
+    }, [balanceLoading, detailLoading])
 
-    useEffect(() => {
+     useEffect(() => {
         if (balanceData) {
             console.log(balanceData);
         }
-    }, [balanceData])
+        if (detailData) {
+            console.log(detailData);
+        }
+    }, [balanceData, detailData])
 
     useEffect(() => {
         if (balanceError) {
@@ -79,7 +109,12 @@ function AccountBalanceWidget(props) {
 
     const handleChange = event => {
         setTermSelected(event.target.value)
+        setTerm(event.target.value)
     }
+
+    /* useEffect(() => {
+        console.log("Term in child", term)
+    }, [term]) */
 
     return (
         <div className={classes.root}>
@@ -92,6 +127,15 @@ function AccountBalanceWidget(props) {
                     onOpen={() => setDropdownOpen(true)}
                     onClose={() => setDropdownOpen(false)}
                 >
+                    {
+                        currentTermData && (
+                            <DropdownItem
+                                key={currentTermData.code}
+                                label={currentTermData.title}
+                                value={currentTermData.code}
+                            />
+                        )
+                    }
                      {balanceData.Periods.map((period) => {
                         return (
                             <DropdownItem
@@ -103,6 +147,27 @@ function AccountBalanceWidget(props) {
                     }
                 </Dropdown>
             )}
+            <div>
+                {detailData && (
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>
+                                    <Typography>Term Selected</Typography>
+                                </TableCell>
+                                <TableCell>
+                                     <Typography>{detailData.term}</Typography>
+                                </TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell>Amount: ${detailData.AmountDue}</TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                )}
+            </div>
         </div>
     );
 }
@@ -115,9 +180,9 @@ const AccountBalanceWithStyle = withStyles(styles)(AccountBalanceWidget);
 
 function AccountBalanceWithProviders(){
     return (
-        <AccountBalanceProvider>
+        <AccountDetailProvider>
             <AccountBalanceWithStyle />
-        </AccountBalanceProvider>
+        </AccountDetailProvider >
     )
 }
 

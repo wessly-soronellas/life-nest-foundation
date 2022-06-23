@@ -1,13 +1,23 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@ellucian/react-design-system/core/styles';
 import {
     Card,
     Grid,
+    Tabs,
+    Tab,
+    SelectionMenu,
+    SelectionMenuItem,
     Typography,
     IconButton,
     NotificationBadge,
-    Tooltip
+    Tooltip,
+    HeaderBar,
+    HeaderBarItem,
+    HeaderBarDropdown,
+    HeaderUtilityBar,
+    HeaderBarLogo,
+    MegaMenu
 } from '@ellucian/react-design-system/core';
 import {
     IconSprite,
@@ -15,7 +25,8 @@ import {
 } from '@ellucian/ds-icons/lib'
 import {
     spacing40,
-    spacingInset20
+    spacingInset20,
+    widthFluid
 } from '@ellucian/react-design-system/core/styles/tokens';
 
 import PasswordWidget from '../components/pwdExpiry.card';
@@ -23,10 +34,10 @@ import MealPlanWidget from '../components/mealPlan.card';
 import ContactInfoWidget from '../components/contactInfo.card';
 import AccountBalanceWidget from '../components/accountDetail.card';
 import HelpWidget from '../components/helpInfo.card';
+import DashboardNotificationsWidget from '../components/dashboardNotifications.card';
 
 const styles = theme => ({
     root: {
-        padding: spacing40
     },
     card: {
         color: theme.palette.text.secondary
@@ -41,7 +52,12 @@ function FullWidthGrid(props)  {
     const [accountOpen, setAccountOpen] = useState(false);
     const [helpOpen, setHelpOpen] = useState(false);
     const [defaultOpen, setDefaultOpen] = useState(false);
+    const [navOpen, setNavOpen] = useState(false);
     const [componentOpen, setComponentOpen] = useState('');
+    const [megaMenuOpen, setMegaMenuOpen] = useState(false);
+    const [tabSelected, setTabSelected] = useState();
+
+    const containerRef = useRef(null);
 
     const handlePasswordClick = () => setComponentOpen('password')
     const handleMealClick = () => setComponentOpen('meal')
@@ -102,66 +118,140 @@ function FullWidthGrid(props)  {
         }
     }, [componentOpen]);
 
+    const megaMenuItems = [
+        {
+            key: 'meal',
+            content: (
+                <NotificationBadge badgeContent={24}>
+                    <Icon name="dining" />
+                </NotificationBadge>
+            ),
+            label: 'Meal Plan'
+        },
+        {
+            key: 'password',
+            content: (
+                <NotificationBadge badgeContent={24}>
+                    <Icon name="lock" />
+                </NotificationBadge>
+            ),
+            label: 'Password'
+        },
+        {
+            key: 'account',
+            content: (
+                <NotificationBadge badgeContent={true}>
+                    <Icon name="institution" />
+                </NotificationBadge>
+            ),
+            label: 'Account Balance'
+        },
+        {
+            key: 'contact',
+            content: (
+                <NotificationBadge badgeContent={true}>
+                    <Icon name="address-card" />
+                </NotificationBadge>
+            ),
+            label: 'Contact Info'
+        }
+    ];
+
+    const selectionItems = [
+        {
+            key: 'meal',
+            content: (
+                <NotificationBadge badgeContent={24}>
+                    <Icon name="dining" />
+                </NotificationBadge>
+            ),
+            label: 'Meal Plan',
+            handleClick: handleMealClick
+        },
+        {
+            key: 'password',
+            content: (
+                <NotificationBadge badgeContent={24}>
+                    <Icon name="lock" />
+                </NotificationBadge>
+            ),
+            label: 'Password',
+            handleClick: handlePasswordClick
+        },
+        {
+            key: 'account',
+            content: (
+                <NotificationBadge badgeContent={true}>
+                    <Icon name="institution" />
+                </NotificationBadge>
+            ),
+            label: 'Account Balance',
+            handleClick: handleAccountClick
+        },
+        {
+            key: 'contact',
+            content: (
+                <NotificationBadge badgeContent={true}>
+                    <Icon name="address-card" />
+                </NotificationBadge>
+            ),
+            label: 'Contact Info',
+            handleClick: handleContactClick
+        }
+    ];
+
+
+
+
+    const onTabClick = (e, value) => {
+        console.log("e", e);
+        console.log("value", value);
+        if (value !== 'dropdown') {
+            setComponentOpen(value);
+        }
+    };
+
 
     return (
-        <div className={classes.root}>
-                <Grid container direction="row" spacing={1}>
-                    <Grid xs={2} direction="column" alignItems="baseline" justify="space-evenly">
-                        <Grid item >
-                            <Tooltip id="password-expiration" title="Password Expiration" placement="left-start">
-                                <IconButton id="password" onClick={handlePasswordClick} aria-label="Password Expiration" color="gray">
-                                    <NotificationBadge>
-                                        <Icon name="lock" id="passwordExpiration" style={{ width: 24, height: 24 }} />
-                                    </NotificationBadge>
-                                </IconButton>
-                            </Tooltip>
-                        </Grid>
-                        <Grid item  >
-                            <Tooltip id="meal-plan-information" title="Meal Plan Information" placement="left-start">
-                                <IconButton onClick={handleMealClick} aria-label="Meal Plan Information" color="gray">
-                                    <Icon name="dining" id="mealPlanInformation" style={{ width: 24, height: 24 }} />
-                                </IconButton>
-                            </Tooltip>
-                        </Grid>
-                        <Grid item >
-                            <Tooltip id="contact-information" title="Contact Information" placement="left-start">
-                                <IconButton onClick={handleContactClick} aria-label="Contact Information" color="gray">
-                                    <NotificationBadge>
-                                        <Icon name="address-card" id="contactInformation" style={{ width: 24, height: 24 }} />
-                                    </NotificationBadge>
-                                </IconButton>
-                            </Tooltip>
-                        </Grid>
-                        <Grid item >
-                            <Tooltip id="financial-information" title="Financial Information" placement="left-start">
-                                <IconButton onClick={handleAccountClick} aria-label="Financial Information" color="gray">
-                                    <NotificationBadge>
-                                        <Icon name="institution" id="financialInformation" style={{ width: 24, height: 24 }} />
-                                    </NotificationBadge>
-                                </IconButton>
-                            </Tooltip>
-                        </Grid>
-                        <Grid item >
-                            <Tooltip id="help-widget" title="Help" placement="left-start">
-                                <IconButton onClick={handleHelpClick} aria-label="Help" color="gray">
-                                    <Icon name="help" id="help" style={{ width: 24, height: 24 }} />
-                                </IconButton>
-                            </Tooltip>
-                        </Grid>
-                    </Grid>
-                    <Grid xs={10} direction="column">
-                        <Grid item>
-                            <Card>
-                                {pwdOpen && (<><PasswordWidget /></>)}
-                                {mealOpen && (<><MealPlanWidget /></>)}
-                                {contactOpen && (<><ContactInfoWidget /></>)}
-                                {accountOpen && (<><AccountBalanceWidget /></>)}
-                                {helpOpen && (<><HelpWidget /></>)}
-                            </Card>
-                        </Grid>
-                    </Grid>
-                </Grid>
-                <br />
+        <div>
+            <div id='header-container' className={classes.root}>
+                    <Tabs
+                        onChange={onTabClick}
+                        scrollButtons={true}
+                        scrollButtonsOnMobile={true}
+                        variant='card'
+
+                    >
+                        {megaMenuItems.map(item => (
+                            <Tab
+                                key={item.key}
+                                label={item.label}
+                                value={item.key}
+                            />
+                        ))}
+                        <Tab
+                            value='dropdown'
+                            label={<SelectionMenu>
+                                {selectionItems.map(item => (
+                                    <SelectionMenuItem
+                                        key={item.key}
+                                        value={item.key}
+                                        onClick={item.handleClick}
+                                    >
+                                        {item.content}
+                                    </SelectionMenuItem>
+                                ))}
+                            </SelectionMenu>}
+                            id='select'
+                        />
+                    </Tabs>
+            </div>
+            <div>
+                {pwdOpen && (<><PasswordWidget /></>)}
+                {mealOpen && (<><MealPlanWidget /></>)}
+                {contactOpen && (<><ContactInfoWidget /></>)}
+                {accountOpen && (<><AccountBalanceWidget /></>)}
+            </div>
         </div>
     );
 }
