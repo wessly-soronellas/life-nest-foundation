@@ -5,27 +5,57 @@ import {unstable_batchedUpdates} from 'react-dom';
 import {QueryClient, QueryClientProvider, useQuery} from 'react-query';
 import {useCache, useCardInfo, useData} from '@ellucian/experience-extension/extension-utilities';
 const Context = createContext();
-const cacheKey = 'contact-info';
+const cacheKey = 'contactInfo';
 const queryClient = new QueryClient();
 import {fetchProfileData} from '../hooks/useProfileInfo';
 
 function ContactInformationProviderInternal({children}) {
 
     const {getItem, storeItem} = useCache();
-    const {configuration, cardId} = useCardInfo();
-    const {getExtensionJwt, getEthosQuery} = useData();
+    const {configuration} = useCardInfo();
+    const {getExtensionJwt} = useData();
     const {baseApi: base} = configuration;
 
+    const [ loadContactDataFromCache, setLoadContactDataFromCache] = useState(true);
+    const [ loadContactDataFromQuery, setLoadContactDataFromQuery] = useState(false);
     const [ contactCachedData, setContactCachedData ] = useState();
 
 
-    const contactQuery = useQuery(
+    const {data: contactData, isLoading: contactLoading, isError: contactIsError, error: contactError} = useQuery(
         ["contactInfo", {getExtensionJwt, base, endpoint: 'profile', method: 'GET'}],
-        fetchProfileData
+        fetchProfileData,
+        {
+            enabled: Boolean(loadContactDataFromQuery && getExtensionJwt && base),
+            placeholderData: contactCachedData
+        }
     )
 
-    const {data: contactData, isLoading: contactLoading, isError: contactIsError, error: contactError} = contactQuery;
+    useEffect(() => {
+        if (loadContactDataFromCache) {
+            (async () => {
+                // check for cached data
+                const { data: contactCacheData } = await getItem({key: cacheKey});
 
+                unstable_batchedUpdates(() => {
+                    setLoadContactDataFromCache(false);
+
+                    if (contactCacheData) {
+                        setContactCachedData(contactCacheData);
+                    } else{
+                        setLoadContactDataFromQuery(true);
+                    }
+                })
+            })();
+        }
+    }, [loadContactDataFromCache]);
+
+    useEffect(() => {
+        if (contactData) {
+            storeItem({data: contactData, key: cacheKey});
+            setLoadContactDataFromQuery(false);
+            setLoadContactDataFromCache(false);
+        }
+    }, [contactData]);
 
     const contextValueContact = useMemo(() => {
         return {

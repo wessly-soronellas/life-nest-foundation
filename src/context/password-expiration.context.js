@@ -5,49 +5,79 @@ import {unstable_batchedUpdates} from 'react-dom';
 import {QueryClient, QueryClientProvider, useQuery} from 'react-query';
 import {useCache, useCardInfo, useData} from '@ellucian/experience-extension/extension-utilities';
 const Context = createContext();
-const cacheKey = 'profile-dashboard';
+const cacheKey = 'passwordExpiration';
 const queryClient = new QueryClient();
 import {fetchProfileData} from '../hooks/useProfileInfo';
 
 function PasswordExpirationProviderInternal({children}) {
 
     const {getItem, storeItem} = useCache();
-    const {configuration, cardId} = useCardInfo();
-    const {getExtensionJwt, getEthosQuery} = useData();
+    const {configuration} = useCardInfo();
+    const {getExtensionJwt} = useData();
     const {baseApi: base} = configuration;
 
-    const [ pwdCachedData, setPwdCachedData ] = useState();
+    const [ passwordCachedData, setPasswordCachedData ] = useState();
+    const [ loadPasswordFromCache, setLoadPasswordFromCache] = useState(true);
+    const [ loadPasswordFromQuery, setLoadPasswordFromQuery] = useState(false);
 
-    const pwdQuery = useQuery(
+    const {data: passwordData, isLoading: passwordLoading, isError: passwordIsError, error: passwordError} = useQuery(
         ["pwdExpiry", {getExtensionJwt, base, endpoint: 'pwdexpiry', method: 'POST'}],
-        fetchProfileData
+        fetchProfileData,
+        {
+            enabled: Boolean(loadPasswordFromQuery && getExtensionJwt && base),
+            placeholderData: passwordCachedData
+        }
     )
 
 
-    const {data: pwdData, isLoading: pwdLoading, isError: pwdIsError, error: pwdError} = pwdQuery;
+    useEffect(() => {
+        if (setLoadPasswordFromQuery) {
+            (async () => {
+                // check for cached data
+                const {data: passwordCacheData} = await getItem({key: cacheKey});
 
+                unstable_batchedUpdates(() => {
+                    setLoadPasswordFromCache(false);
 
-    const contextValuePwd = useMemo(() => {
-        return {
-            data: pwdData || pwdCachedData,
-            isError: pwdIsError,
-            isLoading: pwdLoading,
-            error: pwdError
+                    if (passwordCacheData) {
+                        setPasswordCachedData(passwordCacheData);
+                    } else {
+                        setLoadPasswordFromQuery(true)
+                    }
+                })
+            })();
         }
-    }, [pwdCachedData, pwdData, pwdError, pwdLoading]);
+    }, [loadPasswordFromCache]);
+
+    useEffect(() => {
+        if (passwordData) {
+            storeItem({data: passwordData, key: cacheKey});
+            setLoadPasswordFromCache(false);
+            setLoadPasswordFromQuery(false);
+        }
+    }, [passwordData])
+
+    const contextValuePassword = useMemo(() => {
+        return {
+            data: passwordData || passwordCachedData,
+            isError: passwordIsError,
+            isLoading: passwordLoading,
+            error: passwordError
+        }
+    }, [passwordCachedData, passwordData, passwordError, passwordLoading]);
 
 
     useEffect(() => {
         console.log('PasswordExpirationProvider mounted');
-        console.log('ContextValue', contextValuePwd);
+        console.log('ContextValue', contextValuePassword);
         return () => {
             console.log('PasswordExpirationProvider unmounted')
-            console.log('ContextValuePwd', contextValuePwd)
+            console.log('ContextValuePwd', contextValuePassword)
         }
     }, []);
 
     return (
-        <Context.Provider value={contextValuePwd}>
+        <Context.Provider value={contextValuePassword}>
             {children}
         </Context.Provider>
     )

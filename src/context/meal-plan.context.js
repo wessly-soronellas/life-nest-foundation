@@ -5,7 +5,7 @@ import {unstable_batchedUpdates} from 'react-dom';
 import {QueryClient, QueryClientProvider, useQuery} from 'react-query';
 import {useCache, useCardInfo, useData} from '@ellucian/experience-extension/extension-utilities';
 const Context = createContext();
-const cacheKey = 'meal-plan';
+const cacheKey = 'mealPlan';
 const queryClient = new QueryClient();
 import {fetchProfileData} from '../hooks/useProfileInfo';
 
@@ -16,14 +16,45 @@ function MealPlanProviderInternal({children}) {
     const {getExtensionJwt, getEthosQuery} = useData();
     const {baseApi: base} = configuration;
 
+    const [loadMealDataFromQuery, setLoadMealDataFromQuery] = useState(false);
+    const [loadMealDataFromCache, setLoadMealDataFromCache] = useState(true);
     const [ mealCachedData, setMealCachedData ] = useState();
 
-    const mealQuery = useQuery(
+    const {data: mealData, isLoading: mealLoading, isError: mealIsError, error: mealError} = useQuery(
         ["mealPlan", {getExtensionJwt, base, endpoint: 'transact', method: 'POST'}],
-        fetchProfileData
-    )
+        fetchProfileData,
+        {
+            enabled: Boolean(loadMealDataFromQuery && getExtensionJwt && base),
+            placeholderData: mealCachedData
+        }
+    );
 
-    const {data: mealData, isLoading: mealLoading, isError: mealIsError, error: mealError} = mealQuery;
+    useEffect(() => {
+        if (setLoadMealDataFromCache) {
+            (async () => {
+                // check for cached data
+                const {data: mealCacheData} = await getItem({key: cacheKey});
+
+                unstable_batchedUpdates(() => {
+                    setLoadMealDataFromCache(false);
+
+                    if (mealCacheData) {
+                        setMealCachedData(mealCacheData);
+                    } else {
+                        setLoadMealDataFromQuery(true)
+                    }
+                })
+            })();
+        }
+    }, [loadMealDataFromCache]);
+
+    useEffect(() => {
+        if (mealData) {
+            storeItem({data: mealData, key: cacheKey});
+            setLoadMealDataFromCache(false);
+            setLoadMealDataFromQuery(false);
+        }
+    }, [mealData])
 
 
     const contextValueMeal = useMemo(() => {
