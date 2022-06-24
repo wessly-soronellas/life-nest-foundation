@@ -16,36 +16,140 @@ function AccountDetailProviderInternal({children}) {
     const {getExtensionJwt, getEthosQuery} = useData();
     const {baseApi: base} = configuration;
 
+    // hooks to store cached data
+    const [currentTermCachedData, setCurrentTermCachedData] = useState();
     const [accountDetailCachedData, setAccountDetailCachedData] = useState();
     const [accountBalanceCachedData, setAccountBalanceCachedData] = useState();
+
+    // hook to trigger account detail query
     const [selectedTerm, setSelectedTerm] = useState('default');
 
-    const currentTermQuery = useQuery(
+    // hooks to signal load cached data status. Default is true so first attempt is trying to fecth from cache.
+    const [loadCurrentTermFromCache, setLoadCurrentTermFromCache] = useState(true);
+    const [loadBalanceFromCache, setLoadBalanceFromCache] = useState(true);
+    const [loadDetailFromCache, setLoadDetailFromCache] = useState(true);
+
+    // hooks to signal load from query status. Default is false so first attempt is done using cached data.
+    const [loadCurrentTermFromQuery, setLoadCurrentTermFromQuery] = useState(false);
+    const [loadBalanceFromQuery, setLoadBalanceFromQuery] = useState(false);
+    const [loadDetailFromQuery, setLoadDetailFromQuery] = useState(false);
+
+    const {data: currentTermData, isLoading: currentTermLoading, isError: currentTermIsError, error: currentTermError} = useQuery(
         ["currentTerm", {getEthosQuery}],
-        fetchCurrentTerm
-    )
-    const accountDetailQuery = useQuery(
-        ["accountDetail", {getExtensionJwt, getEthosQuery, base, endpoint: 'account/detail', method: 'POST', term: selectedTerm}],
-        fetchBalanceDetail
-    )
-    const balanceQuery = useQuery(
-        ["accountBalance", {getExtensionJwt, base, endpoint: 'account/balance', method: 'POST'}],
-        fetchProfileData
-    )
-
-    const {data: balanceData, isLoading: balanceLoading, isError: balanceIsError, error: balanceError} = balanceQuery;
-    const {data: currentTermData, isLoading: currentTermLoading, isError: currentTermIsError, error: currentTermError} = currentTermQuery;
-    const {data: detailData, isLoading: detailLoading, isError: detailIsError, error: detailError} = accountDetailQuery;
-
-
-    const contextValueDetail = useMemo(() => {
-        return {
-            data: detailData || accountDetailCachedData,
-            isError: detailIsError,
-            isLoading: detailLoading,
-            error: detailError
+        fetchCurrentTerm,
+        {
+            enabled: Boolean(loadCurrentTermFromQuery && getEthosQuery),
+            placeholderData: currentTermCachedData
         }
-    }, [accountDetailCachedData, detailData, detailError, detailLoading]);
+    )
+    const {data: detailData, isLoading: detailLoading, isError: detailIsError, error: detailError} = useQuery(
+        ["accountDetail", {getExtensionJwt, getEthosQuery, base, endpoint: 'account/detail', method: 'POST', term: selectedTerm}],
+        fetchBalanceDetail,
+        {
+            enabled: Boolean(loadDetailFromQuery && getExtensionJwt && base && selectedTerm)
+        }
+    )
+    const {data: balanceData, isLoading: balanceLoading, isError: balanceIsError, error: balanceError} = useQuery(
+        ["accountBalance", {getExtensionJwt, base, endpoint: 'account/balance', method: 'POST'}],
+        fetchProfileData,
+        {
+            enabled: Boolean(loadBalanceFromQuery && getExtensionJwt && base),
+            placeholderData: accountBalanceCachedData
+        }
+    )
+
+    // useEffect for performing currentTerm cache checking logic
+    useEffect(() => {
+        if (loadCurrentTermFromCache){
+            (async () => {
+                // check for cached data
+                const {data: currentTermCacheData} = await getItem({key: 'currentTerm'});
+
+                unstable_batchedUpdates(() => {
+                    setLoadCurrentTermFromCache(false);
+
+                    if (currentTermCacheData){
+                        setCurrentTermCachedData(currentTermCacheData);
+                        setLoadCurrentTermFromQuery(false);
+                    } else {
+                        setLoadCurrentTermFromQuery(true);
+                    }
+                })
+            })();
+        }
+    }, [loadCurrentTermFromCache]);
+
+    // useEffect for performing balanceData cache checking logic
+    useEffect(() => {
+        if (loadBalanceFromCache){
+            (async () => {
+                // check for cached data
+                const {data: accountBalanceCacheData} = await getItem({key: 'accountBalance'});
+
+                unstable_batchedUpdates(() => {
+                    setLoadCurrentTermFromCache(false);
+
+                    if (accountBalanceCacheData){
+                        setAccountBalanceCachedData(accountBalanceCacheData);
+                        setLoadBalanceFromQuery(false);
+                    } else {
+                        setLoadBalanceFromQuery(true);
+                    }
+                })
+            })();
+        }
+    }, [loadBalanceFromCache]);
+
+    // useEffect for performing detailData cache checking logic
+    useEffect(() => {
+            (async () => {
+                // check for cached data
+                const {data: accountDetailCacheData} = await getItem({key: `accountDetail/${selectedTerm}`});
+
+                unstable_batchedUpdates(() => {
+                    setLoadDetailFromCache(false);
+
+                    if (accountDetailCacheData){
+                        console.log('The term from cache', accountDetailCacheData.term)
+                        setAccountDetailCachedData(accountDetailCacheData);
+                    } else {
+                        setLoadDetailFromQuery(true);
+                    }
+
+                })
+            })();
+    }, [loadDetailFromCache, selectedTerm]);
+
+
+    // useEffect for storing currentTerm data and turning off useState hooks
+    useEffect(() => {
+        if (currentTermData) {
+            console.log('trying to store currentTerm in cache');
+            storeItem({data: currentTermData, key: 'currentTerm'});
+            setLoadCurrentTermFromCache(false);
+            setLoadCurrentTermFromQuery(false);
+        }
+    }, [currentTermData]);
+
+    // useEffect for storing accountBalance data and turning off useState hooks
+    useEffect(() => {
+        if (balanceData) {
+            console.log('trying to store balanceData in cache');
+            storeItem({data: balanceData, key: 'accountBalance'});
+            setLoadBalanceFromCache(false);
+            setLoadBalanceFromQuery(false);
+        }
+    }, [balanceData]);
+
+    // useEffect for storing accountDetail data and turning off useState hooks
+    useEffect(() => {
+        if (detailData) {
+            console.log('trying to store detailData in cache');
+            storeItem({data: detailData, key: `accountDetail/${selectedTerm}`});
+            setLoadDetailFromCache(false);
+            setLoadDetailFromQuery(false);
+        }
+    }, [detailData, selectedTerm]);
 
     const contextValueBalance = useMemo(() => {
         return {
@@ -56,7 +160,7 @@ function AccountDetailProviderInternal({children}) {
                 balanceError
             },
             currentTerm: {
-                currentTermData,
+                currentTermData: currentTermData || currentTermCachedData,
                 currentTermLoading,
                 currentTermIsError,
                 currentTermError
@@ -64,21 +168,62 @@ function AccountDetailProviderInternal({children}) {
             selectedTerm,
             setTerm: (term) => setSelectedTerm(term),
             detail: {
-                detailData,
+                detailData: detailData || accountDetailCachedData,
                 detailLoading,
                 detailIsError,
                 detailError
             }
         }
-    }, [accountBalanceCachedData, balanceData, balanceError, balanceLoading, detailData, detailError, detailLoading]);
+    }, [
+        accountBalanceCachedData, currentTermCachedData, accountDetailCachedData,
+        balanceData, currentTermData, detailData,
+        balanceError, currentTermError, detailError,
+        balanceLoading, currentTermLoading, detailLoading
+        ]);
 
-    useEffect(() => {
-        console.log(contextValueBalance);
-    }, [selectedTerm]);
+   /*  useEffect(() => {
+        console.log('currentTerm cache logger');
+        console.log('currentTermCachedData, the actual data object', currentTermCachedData);
+        console.log('loadCurrentTermFromCache, hook to try cached data. Default is true', loadCurrentTermFromCache);
+        console.log('loadCurrentTermFromQuery, hook to try query data. Default is false', loadCurrentTermFromQuery);
+        console.log('currentTermData, the data retrieved from useQuery', currentTermData);
+    }, [
+        currentTermCachedData,
+        loadCurrentTermFromCache,
+        loadCurrentTermFromQuery,
+        currentTermData
+    ]);
+ */
+    /* useEffect(() => {
+        console.log('accountBalance cache logger');
+        console.log('accountBalanceCachedData, the actual data object', accountBalanceCachedData);
+        console.log('loadBalanceFromCache, hook to try cached data. Default is true', loadBalanceFromCache);
+        console.log('loadBalanceFromQuery, hook to try query data. Default is false', loadBalanceFromQuery);
+        console.log('BalanceData, the data retrieved from useQuery', balanceData);
+    }, [
+        accountBalanceCachedData,
+        loadBalanceFromCache,
+        loadBalanceFromQuery,
+        balanceData
+    ]); */
+
+    /* useEffect(() => {
+        console.log('accountDetail cache logger');
+        console.log('accountDetailCachedData, the actual data object', accountDetailCachedData);
+        console.log('loadDetailFromCache, hook to try cached data. Default is true', loadDetailFromCache);
+        console.log('loadDetailFromQuery, hook to try query data. Default is false', loadDetailFromQuery);
+        console.log('DetailData, the data retrieved from useQuery', detailData);
+        console.log('DetailData, the selectedTerm', selectedTerm);
+    }, [
+        accountDetailCachedData,
+        loadDetailFromCache,
+        loadDetailFromQuery,
+        detailData,
+        selectedTerm
+    ]); */
 
     useEffect(() => {
         console.log('AccountDetailProvider mounted');
-        console.log('AccountBalanceContext', contextValueBalance);
         return () => {
             console.log('AccountDetailProvider unmounted')
         }

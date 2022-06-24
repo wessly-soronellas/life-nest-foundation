@@ -247,6 +247,7 @@ function FullWidthGrid(props)  {
                     </Tabs>
             </div>
             <div>
+                {defaultOpen && (<>defaultOpen</>)}
                 {pwdOpen && (<><PasswordWidget /></>)}
                 {mealOpen && (<><MealPlanWidget /></>)}
                 {contactOpen && (<><ContactInfoWidget /></>)}
