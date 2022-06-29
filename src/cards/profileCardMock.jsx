@@ -34,7 +34,7 @@ import MealPlanWidget from '../components/mealPlan.card';
 import ContactInfoWidget from '../components/contactInfo.card';
 import AccountBalanceWidget from '../components/accountDetail.card';
 import HelpWidget from '../components/helpInfo.card';
-import DashboardNotificationsWidget from '../components/dashboardNotifications.card';
+import Default from '../components/default.card';
 
 const styles = theme => ({
     root: {
@@ -247,7 +247,7 @@ function FullWidthGrid(props)  {
                     </Tabs>
             </div>
             <div>
-                {defaultOpen && (<>defaultOpen</>)}
+                {defaultOpen && (<><Default /></>)}
                 {pwdOpen && (<><PasswordWidget /></>)}
                 {mealOpen && (<><MealPlanWidget /></>)}
                 {contactOpen && (<><ContactInfoWidget /></>)}

@@ -23,7 +23,6 @@ import MealPlanWidget from '../components/mealPlan.card';
 import ContactInfoWidget from '../components/contactInfo.card';
 import AccountBalanceWidget from '../components/accountDetail.card';
 import HelpWidget from '../components/helpInfo.card';
-import DefaultWidget from './dashboardNotifications.card';
 
 const styles = theme => ({
     root: {
@@ -152,7 +151,6 @@ function FullWidthGrid(props)  {
                     </Grid>
                     <Grid xs={10} direction="column">
                         <Grid item>
-                                {defaultOpen && (<><DefaultWidget /></>)}
                                 {pwdOpen && (<><PasswordWidget /></>)}
                                 {mealOpen && (<><MealPlanWidget /></>)}
                                 {contactOpen && (<><ContactInfoWidget /></>)}
