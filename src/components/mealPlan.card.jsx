@@ -9,6 +9,7 @@ import {
     CardMedia,
     Divider,
     Grid,
+    Button,
     getSpacingStyles,
     spacingType,
     CircularProgress,
@@ -19,12 +20,14 @@ import {
     TableCell,
     TableBody,
     useSpacing,
+    TextLink,
     spacingVariant,
     StatusLabel
 } from '@ellucian/react-design-system/core';
 import {Icon} from '@ellucian/ds-icons/lib';
 import {
     spacingInset10,
+    spacingInset20,
     heightFluid,
     widthFluid,
     borderRadiusSmall,
@@ -33,6 +36,7 @@ import {
     colorFillAlertError,
     colorBrandPrimary,
     colorBrandSecondary,
+    colorTextPrimary,
     fountain200,
     fountain300,
     fountain400,
@@ -40,7 +44,20 @@ import {
     iris300,
     iris400,
     kiwi200,
-    kiwi400
+    kiwi400,
+    fontFamilyHeader,
+    fontWeightBold,
+    borderRadiusLarge,
+    borderRadiusXLarge,
+    colorTextAlertError,
+    colorTextAlertSuccess,
+    colorBrandNeutral200,
+    colorBackgroundAlertError,
+    fontSizeHeader1,
+    fontSizeHeader2,
+    fontSizeHeader5,
+    borderRadiusCircle,
+    layout10
  } from '@ellucian/react-design-system/core/styles/tokens';
  import { useCardControl, useCardInfo, useExtensionControl, useUserInfo } from '@ellucian/experience-extension/extension-utilities';
  import { MealPlanProvider, useMealPlanInformation } from '../context/meal-plan.context';
@@ -48,7 +65,9 @@ import {
 
  const styles = theme => ({
     root: {
-        padding: spacingInset10
+        padding: spacingInset20,
+        backgroundColor: colorBrandNeutral200,
+        height: heightFluid
     },
     content: {
         padding: spacingInset10
@@ -64,36 +83,78 @@ import {
         gridTemplateRows: '1fr auto 1fr auto',
         '& .ebucksTitle': {
             gridColumn: '1 / span 1',
-            backgroundColor: fountain200
+            fontFamily: fontFamilyHeader,
+            color: colorTextPrimary,
+            fontWeight: fontWeightBold,
+            fontSize: fontSizeHeader5
         },
         '& .flexbucksTitle': {
             gridColumn: '2 / span 1',
-            backgroundColor: fountain300
+            fontFamily: fontFamilyHeader,
+            color: colorTextPrimary,
+            fontWeight: fontWeightBold,
+            fontSize: fontSizeHeader5
         },
         '& .eprintTitle': {
             gridColumn: '3 / span 1',
-            backgroundColor: fountain400
+            fontFamily: fontFamilyHeader,
+            color: colorTextPrimary,
+            fontSize: fontSizeHeader5,
+            fontWeight: fontWeightBold
         },
         '& .ebucksContent': {
             gridColumn: '1 / span 1',
-            backgroundColor: iris200
+            backgroundColor: kiwi200,
+            fontFamily: fontFamilyHeader,
+            fontWeight: fontWeightBold,
+            color: colorTextPrimary,
+            fontSize: fontSizeHeader2,
+            borderRadius: borderRadiusLarge,
+            width: "75%",
+            margin: "auto"
         },
         '& .flexbucksContent': {
             gridColumn: '2 / span 1',
-            backgroundColor: iris300
+            backgroundColor: kiwi200,
+            fontFamily: fontFamilyHeader,
+            fontWeight: fontWeightBold,
+            color: colorTextPrimary,
+            fontSize: fontSizeHeader2,
+            borderRadius: borderRadiusLarge,
+            width: "75%",
+            margin: "auto"
         },
         '& .eprintContent': {
             gridColumn: '3 / span 1',
-            backgroundColor: iris400
+            backgroundColor: kiwi200,
+            fontFamily: fontFamilyHeader,
+            fontWeight: fontWeightBold,
+            color: colorTextPrimary,
+            fontSize: fontSizeHeader2,
+            borderRadius: borderRadiusLarge,
+            width: "75%",
+            margin: "auto"
         },
         '& .boardplanTitle': {
             gridColumn: '1 / span 3',
-            backgroundColor: kiwi200
+            fontFamily: fontFamilyHeader,
+            color: colorTextPrimary,
+            fontSize: fontSizeHeader5,
+            fontWeight: fontWeightBold,
+            width: "100%",
+            margin: "auto",
+            marginTop: "8px"
         },
         '& .boardplanContent': {
             gridColumn: '1 / span 3',
-            backgroundColor: kiwi400,
-            alignSelf: 'center'
+            backgroundColor: kiwi200,
+            fontFamily: fontFamilyHeader,
+            fontWeight: fontWeightBold,
+            color: colorTextPrimary,
+            fontSize: fontSizeHeader2,
+            borderRadius: borderRadiusLarge,
+            width: "45%",
+            margin: "auto"
         }
     },
     radios: {
@@ -126,6 +187,9 @@ import {
     boardPlanItem: {
         padding: spacingInset10,
         backgroundColor: colorBrandPrimary
+    },
+    moreInfo: {
+        margin: layout10
     }
 });
 
@@ -222,38 +286,41 @@ function MealPlanWidget(props) {
     return (
        <div className={classes.root}>
         <div className={classnames(standardSpacingClasses, classes.grid2Definition)}>
-            <div className="ebucksTitle">
-                <Typography variant="h4" align="center">E-Bucks</Typography>
+            <div className="ebucksTitle" align="center">
+                E-Bucks
             </div>
-            <div className="flexbucksTitle">
-                <Typography variant="h4" align="center">Flex-Bucks</Typography>
+            <div className="flexbucksTitle" align="center">
+                Flex-Bucks
             </div>
-            <div className="eprintTitle">
-                <Typography variant="h4" align="center">E-Print</Typography>
+            <div className="eprintTitle" align="center">
+                E-Print
             </div>
-            <div className="ebucksContent">
-                <Typography variant="h4" align="center">$300</Typography>
+            <div className="ebucksContent" align="center" >
+                $300
             </div>
-            <div className="flexbucksContent">
-                <Typography variant="h4" align="center">$24.65</Typography>
+            <div className="flexbucksContent" align="center" >
+                $24.65
             </div>
-            <div className="eprintContent">
-                <Typography variant="h4" align="center">$92.45</Typography>
+            <div className="eprintContent" align="center" >
+                $92.45
             </div>
-            <div className="boardplanTitle">
-                <Typography variant="h4" align="center">Break?</Typography>
+            <div className="boardplanTitle" align="center" >
+                Board Plan Name
             </div>
-            <div className="boardplanContent">
-                <Typography variant="h5" align="center" gutterBottom>Board Plan</Typography>
-                <div align="center">
-                    <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/grid-template-rows" target="_none">
-                        <Typography variant="h5" align="center">
-                            <StatusLabel text="40" type="success" />
-                        </Typography>
-                    </a>
-                </div>
-                <Typography variant="h5" align="center">Swipes Remaining</Typography>
+            <div className="boardplanContent" align="center" >
+                 40 <Typography>swipes</Typography>
             </div>
+        </div>
+        <div className={classes.moreInfo}>
+        <Typography variant="h5" align="center" gutterBottom>
+            For more information on meal plans, please click&nbsp;
+            <TextLink
+                id={`more_info`}
+                href="https://www.ellucian.com/"
+            >
+                here
+            </TextLink>
+        </Typography>
         </div>
        </div>
     );

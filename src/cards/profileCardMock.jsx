@@ -161,9 +161,7 @@ function FullWidthGrid(props)  {
         {
             key: 'meal',
             content: (
-                <NotificationBadge badgeContent={24}>
-                    <Icon name="dining" />
-                </NotificationBadge>
+                <Typography><Icon name="dining" /> Meal Plan </Typography>
             ),
             label: 'Meal Plan',
             handleClick: handleMealClick
@@ -171,9 +169,9 @@ function FullWidthGrid(props)  {
         {
             key: 'password',
             content: (
-                <NotificationBadge badgeContent={24}>
-                    <Icon name="lock" />
-                </NotificationBadge>
+                <Typography>
+                    <Icon name="lock" /> Password Expiration
+                </Typography>
             ),
             label: 'Password',
             handleClick: handlePasswordClick
@@ -181,9 +179,9 @@ function FullWidthGrid(props)  {
         {
             key: 'account',
             content: (
-                <NotificationBadge badgeContent={true}>
-                    <Icon name="institution" />
-                </NotificationBadge>
+                <Typography>
+                    <Icon name="institution" /> Account Balance
+                </Typography>
             ),
             label: 'Account Balance',
             handleClick: handleAccountClick
@@ -191,9 +189,9 @@ function FullWidthGrid(props)  {
         {
             key: 'contact',
             content: (
-                <NotificationBadge badgeContent={true}>
-                    <Icon name="address-card" />
-                </NotificationBadge>
+                <Typography>
+                    <Icon name="address-card" /> Contact Information
+                </Typography>
             ),
             label: 'Contact Info',
             handleClick: handleContactClick
@@ -222,13 +220,6 @@ function FullWidthGrid(props)  {
                         variant='card'
 
                     >
-                        {megaMenuItems.map(item => (
-                            <Tab
-                                key={item.key}
-                                label={item.label}
-                                value={item.key}
-                            />
-                        ))}
                         <Tab
                             value='dropdown'
                             label={<SelectionMenu>
