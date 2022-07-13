@@ -69,15 +69,6 @@ import {
         backgroundColor: colorBrandNeutral200,
         height: heightFluid
     },
-    content: {
-        padding: spacingInset10
-    },
-    grid1Definition: {
-        gridTemplateColumns: '3fr 2fr',
-        '& .full': {
-            gridColumn: '1 / span 2'
-        }
-    },
     grid2Definition: {
         gridTemplateColumns:  '1fr 1fr 1fr ',
         gridTemplateRows: '1fr auto 1fr auto',
@@ -160,34 +151,6 @@ import {
     radios: {
         border: `${borderWidthThin} solid ${theme.palette.grey[400]}`
     },
-    eBucksContainer: {
-        backgroundColor: theme.palette.grey[400]
-    },
-    flexBucksContainer: {
-        backgroundColor: theme.palette.grey[400]
-    },
-    ePrintContainer: {
-        backgroundColor: theme.palette.grey[400]
-    },
-    boardPlanContainer: {
-        backgroundColor: theme.palette.grey[400]
-    },
-    eBucksItem: {
-        padding: spacingInset10,
-        backgroundColor: colorBrandPrimary
-    },
-    flexBucksItem: {
-        padding: spacingInset10,
-        backgroundColor: colorBrandSecondary
-    },
-    ePrintItem: {
-        padding: spacingInset10,
-        backgroundColor: colorBrandPrimary
-    },
-    boardPlanItem: {
-        padding: spacingInset10,
-        backgroundColor: colorBrandPrimary
-    },
     moreInfo: {
         margin: layout10
     }
@@ -200,7 +163,10 @@ function MealPlanWidget(props) {
     const { navigateToPage } = useCardControl();
     const { setErrorMessage, setLoadingStatus } = useExtensionControl();
     const {data: mealData, isLoading: mealLoading, isError: mealIsError, error: mealError} = useMealPlanInformation();
-    const [spacingStyles, spacingOptions, setSpacingOptions] = useSpacing();
+    const [eBucks, setEBucks] = useState();
+    const [flexBucks, setFlexBucks] = useState();
+    const [ePrint, setEPrint] = useState();
+    const [boardPlan, setBoardPlan] = useState();
     const standardSpacingClasses= getSpacingStyles({
         outerSpacing: true,
         spacing: 'none'
@@ -212,9 +178,25 @@ function MealPlanWidget(props) {
 
     useEffect(() => {
         if (mealData) {
-            console.log(mealData);
+            setBoardPlan(mealData.boardPlan);
+            console.log("board plan", mealData.boardPlan);
         }
-    }, [mealData])
+
+        if (mealData){
+            mealData.storedValue.map(value => {
+                if (value.name === 'eBucks'){
+                    setEBucks(value);
+                }
+                if (value.name === 'flexBucks'){
+                    setFlexBucks(value);
+                }
+                if (value.name === 'ePrint'){
+                    setEPrint(value);
+                }
+                return value
+            })
+        }
+    }, [mealData]);
 
     useEffect(() => {
         if (mealError) {
@@ -296,19 +278,19 @@ function MealPlanWidget(props) {
                 E-Print
             </div>
             <div className="ebucksContent" align="center" >
-                $300
+                {eBucks ? (new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(eBucks.balance)) : 'N/A'}
             </div>
             <div className="flexbucksContent" align="center" >
-                $24.65
+                {flexBucks ? (new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(flexBucks.balance)) : 'N/A'}
             </div>
             <div className="eprintContent" align="center" >
-                $92.45
+                {ePrint ? (new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(ePrint.balance)) : 'N/A'}
             </div>
             <div className="boardplanTitle" align="center" >
-                Board Plan Name
+                {boardPlan && boardPlan[0].boardPlan}
             </div>
             <div className="boardplanContent" align="center" >
-                 40 <Typography>swipes</Typography>
+                 {boardPlan && boardPlan[0].semQtrRemaining} <Typography>swipes</Typography>
             </div>
         </div>
         <div className={classes.moreInfo}>
@@ -319,7 +301,7 @@ function MealPlanWidget(props) {
                 href="https://www.ellucian.com/"
             >
                 here
-            </TextLink>
+            </TextLink>.
         </Typography>
         </div>
        </div>
