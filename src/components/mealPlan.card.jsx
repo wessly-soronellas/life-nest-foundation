@@ -57,6 +57,7 @@ import {
     fontSizeHeader2,
     fontSizeHeader5,
     borderRadiusCircle,
+    colorCtaBlueTint,
     layout10
  } from '@ellucian/react-design-system/core/styles/tokens';
  import { useCardControl, useCardInfo, useExtensionControl, useUserInfo } from '@ellucian/experience-extension/extension-utilities';
@@ -95,7 +96,7 @@ import {
         },
         '& .ebucksContent': {
             gridColumn: '1 / span 1',
-            backgroundColor: kiwi200,
+            backgroundColor: colorCtaBlueTint,
             fontFamily: fontFamilyHeader,
             fontWeight: fontWeightBold,
             color: colorTextPrimary,
@@ -106,7 +107,7 @@ import {
         },
         '& .flexbucksContent': {
             gridColumn: '2 / span 1',
-            backgroundColor: kiwi200,
+            backgroundColor: colorCtaBlueTint,
             fontFamily: fontFamilyHeader,
             fontWeight: fontWeightBold,
             color: colorTextPrimary,
@@ -117,7 +118,7 @@ import {
         },
         '& .eprintContent': {
             gridColumn: '3 / span 1',
-            backgroundColor: kiwi200,
+            backgroundColor: colorCtaBlueTint,
             fontFamily: fontFamilyHeader,
             fontWeight: fontWeightBold,
             color: colorTextPrimary,
@@ -138,7 +139,7 @@ import {
         },
         '& .boardplanContent': {
             gridColumn: '1 / span 3',
-            backgroundColor: kiwi200,
+            backgroundColor: colorCtaBlueTint,
             fontFamily: fontFamilyHeader,
             fontWeight: fontWeightBold,
             color: colorTextPrimary,
