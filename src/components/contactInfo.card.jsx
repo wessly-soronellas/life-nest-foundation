@@ -9,6 +9,7 @@ import {
     CardMedia,
     Divider,
     Grid,
+    ConfirmationDialog,
     Button,
     getSpacingStyles,
     spacingType,
@@ -23,7 +24,13 @@ import {
     TextLink,
     spacingVariant,
     StatusLabel,
-    IconButton
+    ButtonGroup,
+    IconButton,
+    FormControl,
+    FormGroup,
+    FormLabel,
+    FormControlLabel,
+    Checkbox
 } from '@ellucian/react-design-system/core';
 import {Icon} from '@ellucian/ds-icons/lib';
 import {
@@ -77,7 +84,7 @@ import {
     },
     grid2Definition: {
         gridTemplateColumns:  '1fr 1fr 1fr',
-        gridTemplateRows: '1fr auto 1fr auto',
+        gridTemplateRows: 'auto auto auto auto',
         '& .phoneTitle': {
             gridColumn: '1 / span 1',
             fontFamily: fontFamilyHeader,
@@ -184,15 +191,9 @@ import {
             width: "75%",
             margin: "auto"
         },
-        '& .confirmButton': {
-            gridColumn: '1 / span 1',
-            width: "100%",
-            margin: "auto",
-            marginTop: "8px"
-        },
-        '& .editButton': {
-            gridColumn: '3 / span 1',
-            width: "100%",
+        '& .buttonGroup': {
+            gridColumn: '1 / span 3',
+            width: "95%",
             margin: "auto",
             marginTop: "8px"
         }
@@ -207,7 +208,7 @@ function ContactInformationWidget(props) {
     const { setErrorMessage, setLoadingStatus } = useExtensionControl();
     const {data: contactData, isLoading: contactLoading, isError: contactIsError, error: contactError} = useContactInformation();
     const standardSpacingClasses= getSpacingStyles({
-        outerSpacing: true,
+        outerSpacing: false,
         spacing: 'none'
     }, spacingType.LAYOUT);
 
@@ -223,6 +224,20 @@ function ContactInformationWidget(props) {
     const [phoneStatusBackgroundColor, setPhoneStatusBackgroundColor] = useState(colorBackgroundAlertSuccess);
     const [addressStatusBackgroundColor, setAddressStatusBackgroundColor] = useState(colorBackgroundAlertSuccess);
     const [emailStatusBackgroundColor, setEmailStatusBackgroundColor] = useState(colorBackgroundAlertSuccess);
+    const [phoneStatusIcon, setPhoneStatusIcon] = useState("check-feedback");
+    const [addressStatusIcon, setAddressStatusIcon] = useState("check-feedback");
+    const [emailStatusIcon, setEmailStatusIcon] = useState("check-feedback");
+
+    // Hooks to open/close confirmation diologs
+    const [phoneOpen, setPhoneOpen] = useState(false);
+    const [addressOpen, setAddressOpen] = useState(false);
+    const [emailOpen, setEmailOpen] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+
+    // Hooks to determine what information (Phone, Address, Email, or all of them) to confirm in CompleteContentComponent
+    const [phoneChecked, setPhoneChecked] = useState(false);
+    const [addressChecked, setAddressChecked] = useState(false);
+    const [emailChecked, setEmailChecked] = useState(false);
 
     useEffect(() => {
         setLoadingStatus(contactLoading);
@@ -245,10 +260,160 @@ function ContactInformationWidget(props) {
         }
     }, [contactIsError, contactError, setErrorMessage]);
 
-    const onTransactionsClick = useCallback(() => {
+    const onConfirmClick = useCallback(() => {
         // open the page
-        navigateToPage({route: '/'});
-    }, [navigateToPage])
+        navigateToPage({route: '/contact'});
+    }, [navigateToPage]);
+
+    // Confirmation Dialog section (PhoneContent, AddressContent, EmailContent, and CompleteContent)
+    function PhoneContent(){
+        return (
+            <Table>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Phone Number</TableCell>
+                        <TableCell>Type</TableCell>
+                        <TableCell>Edit</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    <TableRow>
+                        <TableCell>404-444-5555</TableCell>
+                        <TableCell>Sample</TableCell>
+                        <TableCell>
+                            <IconButton onClick={() => window.open('https://eaglenet.life.edu/Student/UserProfile')}>
+                                <Icon name="edit"/>
+                            </IconButton>
+                        </TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+        )
+    }
+
+    function AddressContent(){
+        return (
+            <Table>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Address</TableCell>
+                        <TableCell>Type</TableCell>
+                        <TableCell>Preferred</TableCell>
+                        <TableCell>Edit</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    <TableRow>
+                        <TableCell>10247 Highway 92</TableCell>
+                        <TableCell>Sample</TableCell>
+                        <TableCell>
+                            <Icon name="check" />
+                        </TableCell>
+                        <TableCell>
+                            <IconButton onClick={() => window.open('https://eaglenet.life.edu/Student/UserProfile')}>
+                                <Icon name="edit"/>
+                            </IconButton>
+                        </TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+        )
+    }
+
+    function EmailContent(){
+        return (
+            <Table>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Email</TableCell>
+                        <TableCell>Type</TableCell>
+                        <TableCell>Preferred</TableCell>
+                        <TableCell>Edit</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    <TableRow>
+                        <TableCell>wesssly.soronellas@life.edu</TableCell>
+                        <TableCell>Sample</TableCell>
+                        <TableCell>
+                            <Icon name="check" />
+                        </TableCell>
+                        <TableCell>
+                            <IconButton onClick={() => window.open('https://eaglenet.life.edu/Student/UserProfile')}>
+                                <Icon name="edit"/>
+                            </IconButton>
+                        </TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+        )
+    }
+
+    function CompleteContent(){
+        const handleClick = () => console.log("handleClick was clicked");
+
+        return (
+            <div className={classnames(standardSpacingClasses, classes.completeConfirmGridDefinition)}>
+                <div className="phoneTitle">
+                    Phone Information
+                </div>
+                <div className="addressTitle">
+                    Address Information
+                </div>
+                <div className="emailTitle">
+                    Email Information
+                </div>
+                <div className="phoneContent">
+                    <PhoneContent />
+                </div>
+                <div className="addressContent">
+                    <AddressContent />
+                </div>
+                <div className="emailContent">
+                    <EmailContent />
+                </div>
+                <div className="phoneChecked">
+                    <Typography id="phone_checkbox_label" style={{display: 'inline-block'}}>
+                        confirm phone
+                    </Typography>
+                    <Checkbox
+                        inputProps={{
+                            'aria-labelledby': 'email_checkbox_label'
+                        }}
+                        checked={phoneChecked}
+                        onChange={() => setPhoneChecked(!phoneChecked)}
+                        value={`${phoneChecked}`}
+                    />
+                </div>
+                <div className="addressChecked">
+                    <Typography id="address_checkbox_label" style={{display: 'inline-block'}}>
+                        confirm address
+                    </Typography>
+                    <Checkbox
+                        inputProps={{
+                            'aria-labelledby': 'address_checkbox_label'
+                        }}
+                        checked={addressChecked}
+                        onChange={() => setAddressChecked(!addressChecked)}
+                        value={`${addressChecked}`}
+                    />
+                </div>
+                <div className="emailChecked">
+                    <Typography id="email_checkbox_label" style={{display: 'inline-block'}}>
+                        confirm email
+                    </Typography>
+                    <Checkbox
+                        inputProps={{
+                            'aria-labelledby': 'email_checkbox_label'
+                        }}
+                        checked={emailChecked}
+                        onChange={() => setEmailChecked(!emailChecked)}
+                        value={`${emailChecked}`}
+                    />
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className={classes.root}>
@@ -263,33 +428,69 @@ function ContactInformationWidget(props) {
                     <div className="emailTitle" align="center">
                         Email
                     </div>
-                    <IconButton onClick={() => console.log("clicked")} className="phoneIcon">
+                    <IconButton onClick={() => setPhoneOpen(true)} className="phoneIcon">
                         <Icon name="mobile" style={{height: '40px', width: '40px'}}/>
                     </IconButton>
-                    <IconButton className="addressIcon" align="center">
+                    <IconButton onClick={() => setAddressOpen(true)} className="addressIcon" align="center">
                         <Icon name="home" style={{height: '40px', width: '40px'}}/>
                     </IconButton>
-                    <IconButton className="emailIcon" align="center">
+                    <IconButton onClick={() => setEmailOpen(true)} className="emailIcon" align="center">
                         <Icon name="email" style={{height: '40px', width: '40px'}}/>
                     </IconButton>
                     <div className="phoneStatus" align="center">
-                        Status <br /><Icon name="check-feedback" style={{color: phoneStatusText, backgroundColor: phoneStatusBackgroundColor, height: '24px', width: '24px'}}/>
+                        Status <br /><Icon name={phoneStatusIcon} style={{color: phoneStatusText, backgroundColor: phoneStatusBackgroundColor, height: '24px', width: '24px'}}/>
                     </div>
                     <div className="addressStatus" align="center" >
-                        Status <br /><Icon name="check-feedback" style={{color: addressStatusText, backgroundColor: addressStatusBackgroundColor, height: '24px', width: '24px'}}/>
+                        Status <br /><Icon name={addressStatusIcon} style={{color: addressStatusText, backgroundColor: addressStatusBackgroundColor, height: '24px', width: '24px'}}/>
                     </div>
                     <div className="emailStatus" align="center">
-                        Status <br /> <Icon name="check-feedback" style={{color: emailStatusText, backgroundColor: emailStatusBackgroundColor, height: '24px', width: '24px'}}/>
+                        Status <br /> <Icon name={emailStatusIcon} style={{color: emailStatusText, backgroundColor: emailStatusBackgroundColor, height: '24px', width: '24px'}}/>
                     </div>
-                    <div className="confirmButton" align="right">
-                        <Button fluid>
+                    <div className="buttonGroup" align="center">
+                    <ButtonGroup>
+                        <Button onClick={onConfirmClick} color="secondary">
                             Confirm
                         </Button>
-                    </div>
-                    <div className="editButton" align="left">
-                        <Button color="secondary" fluid>
-                            Edit
+                        <Button >
+                            Update
                         </Button>
+                    </ButtonGroup>
+                    </div>
+                    <div className="phoneDialog">
+                        <ConfirmationDialog
+                            open={phoneOpen}
+                            primaryActionOnClick={() => console.log('primary action clicked')}
+                            primaryActionText="Confirm"
+                            secondaryActionOnClick={() => setPhoneOpen(false)}
+                            secondaryActionText="Cancel"
+                            title="Confirm phone information?"
+                            content={(<PhoneContent />)}
+                            contentText="Click Confirm if the phone information below is accurate as of today. Click Edit to update phone information."
+                        />
+                    </div>
+                    <div className="addressDialog">
+                        <ConfirmationDialog
+                            open={addressOpen}
+                            primaryActionOnClick={() => console.log('primary action clicked')}
+                            primaryActionText="Confirm"
+                            secondaryActionOnClick={() => setAddressOpen(false)}
+                            secondaryActionText="Cancel"
+                            title="Confirm address information?"
+                            content={(<AddressContent />)}
+                            contentText="Click Confirm if the address(es) below is/are accurate as of today. Click Edit to update address information."
+                        />
+                    </div>
+                    <div className="emailDialog">
+                        <ConfirmationDialog
+                            open={emailOpen}
+                            primaryActionOnClick={() => console.log('primary action clicked')}
+                            primaryActionText="Confirm"
+                            secondaryActionOnClick={() => setEmailOpen(false)}
+                            secondaryActionText="Cancel"
+                            title="Confirm email information?"
+                            content={(<EmailContent />)}
+                            contentText="Click Confirm if the email address(es) below is/are accurate as of today. Click Edit to update email information."
+                        />
                     </div>
                 </div>
             )}
