@@ -1,71 +1,37 @@
-import React, {useCallback, useEffect, useState} from 'react';
+/* eslint-disable @calm/react-intl/missing-formatted-message */
+import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { withStyles } from '@ellucian/react-design-system/core/styles';
 import {
-    Card,
-    CardHeader,
-    CardContent,
-    CardMedia,
     CircularProgress,
-    Typography,
-    IconButton,
-    NotificationBadge,
-    Tooltip,
     getSpacingStyles,
     spacingType,
-    TextLink,
-    StatusLabel,
-    Illustration,
-    IMAGES
+    TextLink
 } from '@ellucian/react-design-system/core';
-import {Icon} from '@ellucian/ds-icons/lib';
 import {
-    spacingInset10,
     spacingInset20,
     heightFluid,
-    widthFluid,
-    borderRadiusSmall,
-    borderWidthThin,
-    colorFillLogoPreferred,
     colorFillAlertError,
-    colorBrandPrimary,
-    colorBrandSecondary,
     colorTextPrimary,
-    fountain200,
-    fountain300,
-    fountain400,
-    iris200,
-    iris300,
-    iris400,
-    kiwi200,
-    kiwi400,
     fontFamilyHeader,
     fontFamilyDefault,
     fontWeightBold,
-    borderRadiusLarge,
-    borderRadiusXLarge,
     colorTextAlertError,
     colorTextAlertSuccess,
     colorTextAlertWarning,
-    colorBrandNeutral200,
     colorBackgroundAlertError,
     colorBackgroundAlertSuccess,
     colorBackgroundAlertWarning,
-    fontSizeHeader1,
     fontSizeDefault,
     fontSizeHeader2,
-    fontSizeHeader5,
-    borderRadiusCircle,
-    borderWidthThick,
-    colorGlobalBorderDefault,
-    layout10
+    fontSizeHeader5
  } from '@ellucian/react-design-system/core/styles/tokens';
- import { useCardControl, useCardInfo, useExtensionControl, useUserInfo } from '@ellucian/experience-extension/extension-utilities';
+ import { useExtensionControl } from '@ellucian/experience-extension/extension-utilities';
  import { PasswordExpirationProvider, usePasswordExpiration } from '../context/password-expiration.context';
 
 
- const styles = theme => ({
+ const styles = () => ({
     root: {
         padding: spacingInset20,
         height: heightFluid
@@ -115,16 +81,15 @@ function PasswordExpirationWidget(props) {
     const [daysLeftText, setDaysLeftText] = useState(colorTextAlertSuccess);
     const [daysLeftBackground, setDaysLeftBackground] = useState(colorBackgroundAlertSuccess);
     // Experience SDK hooks
-    const { navigateToPage } = useCardControl();
     const { setErrorMessage, setLoadingStatus } = useExtensionControl();
-    const {data: pwdData, isLoading: pwdLoading, isError: pwdIsError, error: pwdError} = usePasswordExpiration();
+    const {data: pwdData, isLoading: pwdLoading, error: pwdError} = usePasswordExpiration();
     const standardSpacingClasses= getSpacingStyles({
         outerSpacing: false,
         spacing: 'none'
     }, spacingType.LAYOUT);
 
     useEffect(() => {
-        console.log(pwdLoading);
+        setLoadingStatus(pwdLoading)
     }, [pwdLoading])
 
     useEffect(() => {
@@ -152,11 +117,6 @@ function PasswordExpirationWidget(props) {
         }
     }, [pwdError, setErrorMessage]);
 
-    const onTransactionsClick = useCallback(() => {
-        // open the page
-        navigateToPage({route: '/'});
-    }, [navigateToPage])
-
     return (
         <div className={classes.root}>
             <div className={classnames(standardSpacingClasses, classes.grid2Definition)}>
@@ -176,10 +136,10 @@ function PasswordExpirationWidget(props) {
                     Your password will expire on <div className="timestampInfo">{pwdData.expiry.substring(0, 10)}</div> Please click&nbsp;
                     <TextLink
                         id={`more_info`}
-                        href="https://www.ellucian.com/"
+                        href="https://pwd.life.edu/"
                     >
                         here
-                    </TextLink>&nbsp; to change it.
+                    </TextLink>&nbsp;to change it.
                     </div>
                 )}
             </div>

@@ -1,40 +1,22 @@
-import React, {useState, useEffect, useRef} from 'react';
+/* eslint-disable @calm/react-intl/missing-formatted-message */
+import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@ellucian/react-design-system/core/styles';
 import {
-    Card,
-    Grid,
     Tabs,
     Tab,
     SelectionMenu,
     SelectionMenuItem,
-    Typography,
-    IconButton,
-    NotificationBadge,
-    Tooltip,
-    HeaderBar,
-    HeaderBarItem,
-    HeaderBarDropdown,
-    HeaderUtilityBar,
-    HeaderBarLogo,
-    MegaMenu
+    Typography
 } from '@ellucian/react-design-system/core';
 import {
-    IconSprite,
     Icon
-} from '@ellucian/ds-icons/lib'
-import {
-    spacing40,
-    spacingInset20,
-    widthFluid
-} from '@ellucian/react-design-system/core/styles/tokens';
+} from '@ellucian/ds-icons/lib';
 
 import PasswordWidget from '../components/pwdExpiry.card';
 import MealPlanWidget from '../components/mealPlan.card';
 import ContactInfoWidget from '../components/contactInfo.card';
 import AccountBalanceWidget from '../components/accountDetail.card';
-import HelpWidget from '../components/helpInfo.card';
-import Default from '../components/default.card';
 
 const styles = theme => ({
     root: {
@@ -50,20 +32,13 @@ function FullWidthGrid(props)  {
     const [mealOpen, setMealOpen] = useState(false);
     const [contactOpen, setContactOpen] = useState(false);
     const [accountOpen, setAccountOpen] = useState(false);
-    const [helpOpen, setHelpOpen] = useState(false);
     const [defaultOpen, setDefaultOpen] = useState(false);
-    const [navOpen, setNavOpen] = useState(false);
     const [componentOpen, setComponentOpen] = useState('');
-    const [megaMenuOpen, setMegaMenuOpen] = useState(false);
-    const [tabSelected, setTabSelected] = useState();
 
-    const containerRef = useRef(null);
-
-    const handlePasswordClick = () => setComponentOpen('password')
-    const handleMealClick = () => setComponentOpen('meal')
-    const handleContactClick = () => setComponentOpen('contact')
-    const handleAccountClick = () => setComponentOpen('account')
-    const handleHelpClick = () => setComponentOpen('help')
+    const handlePasswordClick = () => setComponentOpen('password');
+    const handleMealClick = () => setComponentOpen('meal');
+    const handleContactClick = () => setComponentOpen('contact');
+    const handleAccountClick = () => setComponentOpen('account');
 
     useEffect(() => {
         switch(componentOpen){
@@ -72,7 +47,6 @@ function FullWidthGrid(props)  {
                 setMealOpen(false);
                 setContactOpen(false);
                 setAccountOpen(false);
-                setHelpOpen(false);
                 setDefaultOpen(false);
                 break;
             case 'meal':
@@ -80,7 +54,6 @@ function FullWidthGrid(props)  {
                 setMealOpen(true);
                 setContactOpen(false);
                 setAccountOpen(false);
-                setHelpOpen(false);
                 setDefaultOpen(false);
                 break;
             case 'contact':
@@ -88,7 +61,6 @@ function FullWidthGrid(props)  {
                 setMealOpen(false);
                 setContactOpen(true);
                 setAccountOpen(false);
-                setHelpOpen(false);
                 setDefaultOpen(false);
                 break;
             case 'account':
@@ -96,15 +68,6 @@ function FullWidthGrid(props)  {
                 setMealOpen(false);
                 setContactOpen(false);
                 setAccountOpen(true);
-                setHelpOpen(false);
-                setDefaultOpen(false);
-                break;
-            case 'help':
-                setPwdOpen(false);
-                setMealOpen(false);
-                setContactOpen(false);
-                setAccountOpen(false);
-                setHelpOpen(true);
                 setDefaultOpen(false);
                 break;
             default:
@@ -113,59 +76,11 @@ function FullWidthGrid(props)  {
                 setPwdOpen(false);
                 setContactOpen(false);
                 setAccountOpen(false);
-                setHelpOpen(false);
 
         }
     }, [componentOpen]);
 
-    const megaMenuItems = [
-        {
-            key: 'meal',
-            content: (
-                <NotificationBadge badgeContent={24}>
-                    <Icon name="dining" />
-                </NotificationBadge>
-            ),
-            label: 'Meal Plan'
-        },
-        {
-            key: 'password',
-            content: (
-                <NotificationBadge badgeContent={24}>
-                    <Icon name="lock" />
-                </NotificationBadge>
-            ),
-            label: 'Password'
-        },
-        {
-            key: 'account',
-            content: (
-                <NotificationBadge badgeContent={true}>
-                    <Icon name="institution" />
-                </NotificationBadge>
-            ),
-            label: 'Account Balance'
-        },
-        {
-            key: 'contact',
-            content: (
-                <NotificationBadge badgeContent={true}>
-                    <Icon name="address-card" />
-                </NotificationBadge>
-            ),
-            label: 'Contact Info'
-        }
-    ];
-
     const selectionItems = [
-        {
-            key: 'meal',
-            content: (
-                <Typography><Icon name="dining" /> Meal Plan </Typography>
-            ),
-            label: 'Meal Plan',
-            handleClick: handleMealClick
-        },
         {
             key: 'password',
             content: (
@@ -175,6 +90,14 @@ function FullWidthGrid(props)  {
             ),
             label: 'Password',
             handleClick: handlePasswordClick
+        },
+        {
+            key: 'meal',
+            content: (
+                <Typography><Icon name="dining" /> Meal Plan </Typography>
+            ),
+            label: 'Meal Plan',
+            handleClick: handleMealClick
         },
         {
             key: 'account',
@@ -202,8 +125,6 @@ function FullWidthGrid(props)  {
 
 
     const onTabClick = (e, value) => {
-        console.log("e", e);
-        console.log("value", value);
         if (value !== 'dropdown') {
             setComponentOpen(value);
         }
@@ -238,7 +159,7 @@ function FullWidthGrid(props)  {
                     </Tabs>
             </div>
             <div>
-                {defaultOpen && (<><ContactInfoWidget /></>)}
+                {defaultOpen && (<><PasswordWidget /></>)}
                 {pwdOpen && (<><PasswordWidget /></>)}
                 {mealOpen && (<><MealPlanWidget /></>)}
                 {contactOpen && (<><ContactInfoWidget /></>)}

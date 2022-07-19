@@ -1,3 +1,4 @@
+/* eslint-disable @calm/react-intl/missing-formatted-message */
 import React, {useCallback, useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
@@ -9,6 +10,7 @@ import {
     CardMedia,
     Divider,
     Grid,
+    Tooltip,
     ConfirmationDialog,
     Button,
     getSpacingStyles,
@@ -59,10 +61,12 @@ import {
     borderRadiusXLarge,
     colorTextAlertError,
     colorTextAlertSuccess,
+    colorTextAlertWarning,
     colorCtaBlueTint,
     colorBrandNeutral200,
     colorBackgroundAlertError,
     colorBackgroundAlertSuccess,
+    colorBackgroundAlertWarning,
     fontSizeHeader1,
     fontSizeHeader4,
     fontSizeHeader5,
@@ -71,7 +75,7 @@ import {
     colorTextNeutral250,
     layout10
  } from '@ellucian/react-design-system/core/styles/tokens';
- import { useCardControl, useCardInfo, useExtensionControl, useUserInfo } from '@ellucian/experience-extension/extension-utilities';
+ import { useCardControl,  useExtensionControl} from '@ellucian/experience-extension/extension-utilities';
  import { ContactInformationProvider, useContactInformation } from '../context/contact-info.context';
 
 
@@ -81,6 +85,30 @@ import {
         width: widthFluid,
         padding: spacingInset20,
         backgroundColor: colorFillLogoPreferred
+    },
+    phoneTable: {
+        width: '85%',
+        margin: 'auto',
+        backgroundColor: colorBrandNeutral200,
+        color: colorTextPrimary
+    },
+    addressTable: {
+        width: '95%',
+        margin: 'auto',
+        backgroundColor: colorBrandNeutral200,
+        color: colorTextPrimary,
+        '& .preferredIcon': {
+            color: theme.palette.secondary.main
+        }
+    },
+    emailTable: {
+        width: '95%',
+        margin: 'auto',
+        backgroundColor: colorBrandNeutral200,
+        color: colorTextPrimary,
+        '& .preferredIcon': {
+            color: theme.palette.secondary.main
+        }
     },
     grid2Definition: {
         gridTemplateColumns:  '1fr 1fr 1fr',
@@ -174,21 +202,21 @@ import {
             gridColumn: '1 / span 1',
             fontFamily: fontFamilyHeader,
             fontSize: fontSizeHeader5,
-            width: "75%",
+            width: widthFluid,
             margin: "auto"
         },
         '& .addressStatus': {
             gridColumn: '2 / span 1',
             fontFamily: fontFamilyHeader,
             fontSize: fontSizeHeader5,
-            width: "75%",
+            width: widthFluid,
             margin: "auto"
         },
         '& .emailStatus': {
             gridColumn: '3 / span 1',
             fontFamily: fontFamilyHeader,
             fontSize: fontSizeHeader5,
-            width: "75%",
+            width: widthFluid,
             margin: "auto"
         },
         '& .buttonGroup': {
@@ -216,8 +244,12 @@ function ContactInformationWidget(props) {
     const [phoneData, setPhoneData] = useState();
     const [addressData, setAddressData] = useState();
     const [emailData, setEmailData] = useState();
+    const [daysSince, setDaysSince] = useState();
 
     // Hooks to determine status for contact information
+    const [phoneDaysSince, setPhoneDaysSince] = useState();
+    const [addressDaysSince, setAddressDaysSince] = useState();
+    const [emailDaysSince, setEmailDaysSince] = useState();
     const [phoneStatusText, setPhoneStatusText] = useState(colorTextAlertSuccess);
     const [addressStatusText, setAddressStatusText] = useState(colorTextAlertSuccess);
     const [emailStatusText, setEmailStatusText] = useState(colorTextAlertSuccess);
@@ -227,17 +259,15 @@ function ContactInformationWidget(props) {
     const [phoneStatusIcon, setPhoneStatusIcon] = useState("check-feedback");
     const [addressStatusIcon, setAddressStatusIcon] = useState("check-feedback");
     const [emailStatusIcon, setEmailStatusIcon] = useState("check-feedback");
+    const [phoneStatusMessage, setPhoneStatusMessage] = useState("phone is up to date");
+    const [addressStatusMessage, setAddressStatusMessage] = useState("address is up to date");
+    const [emailStatusMessage, setEmailStatusMessage] = useState("email is up to date");
 
     // Hooks to open/close confirmation diologs
     const [phoneOpen, setPhoneOpen] = useState(false);
     const [addressOpen, setAddressOpen] = useState(false);
     const [emailOpen, setEmailOpen] = useState(false);
-    const [confirmOpen, setConfirmOpen] = useState(false);
 
-    // Hooks to determine what information (Phone, Address, Email, or all of them) to confirm in CompleteContentComponent
-    const [phoneChecked, setPhoneChecked] = useState(false);
-    const [addressChecked, setAddressChecked] = useState(false);
-    const [emailChecked, setEmailChecked] = useState(false);
 
     useEffect(() => {
         setLoadingStatus(contactLoading);
@@ -246,8 +276,73 @@ function ContactInformationWidget(props) {
     useEffect(() => {
         if (contactData) {
             console.log(contactData);
+            setPhoneData(contactData.profile.Phones);
+            setAddressData(contactData.profile.Addresses);
+            setEmailData(contactData.profile.EmailAddresses);
+            setDaysSince(contactData.daysSince);
         }
-    }, [contactData])
+    }, [contactData]);
+
+    useEffect(() => {
+        if (daysSince) {
+            setPhoneDaysSince(daysSince.daysSincePhoneConfirmed);
+            setAddressDaysSince(daysSince.daysSinceAddressConfirmed);
+            setEmailDaysSince(daysSince.daysSinceEmailConfirmed);
+        }
+    }, [daysSince]);
+
+    // conditional styling section
+    useEffect(() => {
+        if (phoneDaysSince) {
+            if (phoneDaysSince >= 150 && phoneDaysSince <= 179){
+                setPhoneStatusText(colorTextAlertWarning);
+                setPhoneStatusBackgroundColor(colorBackgroundAlertWarning);
+                setPhoneStatusIcon("warning");
+                setPhoneStatusMessage("update or confirm soon");
+            }
+            if (phoneDaysSince >= 180){
+                setPhoneStatusText(colorTextAlertError);
+                setPhoneStatusBackgroundColor(colorBackgroundAlertError);
+                setPhoneStatusIcon("warning-solid");
+                setPhoneStatusMessage("update or confirm now");
+            }
+        }
+    }, [phoneDaysSince]);
+
+    useEffect(() => {
+        if (addressDaysSince) {
+            if (addressDaysSince >= 150 && addressDaysSince <= 179){
+                setAddressStatusText(colorTextAlertWarning);
+                setAddressStatusBackgroundColor(colorBackgroundAlertWarning);
+                setAddressStatusIcon("warning");
+                setAddressStatusMessage("update or confirm soon");
+            }
+            if (addressDaysSince >= 180){
+                setAddressStatusText(colorTextAlertError);
+                setAddressStatusBackgroundColor(colorBackgroundAlertError);
+                setAddressStatusIcon("warning-solid");
+                setAddressStatusMessage("update or confirm now");
+            }
+        }
+    }, [addressDaysSince]);
+
+    useEffect(() => {
+        if (emailDaysSince) {
+
+            if (emailDaysSince >= 150 && emailDaysSince <= 179){
+                setEmailStatusText(colorTextAlertWarning);
+                setEmailStatusBackgroundColor(colorBackgroundAlertWarning);
+                setEmailStatusIcon("warning");
+                setEmailStatusMessage("update or confirm soon");
+            }
+            if (emailDaysSince >= 180){
+                setEmailStatusText(colorTextAlertError);
+                setEmailStatusBackgroundColor(colorBackgroundAlertError);
+                setEmailStatusIcon("warning-solid");
+                setEmailStatusMessage("update or confirm now");
+            }
+        }
+    }, [emailDaysSince]);
 
     useEffect(() => {
         if (contactError) {
@@ -265,155 +360,124 @@ function ContactInformationWidget(props) {
         navigateToPage({route: '/contact'});
     }, [navigateToPage]);
 
+    const onUpdateClick = () => window.open('https://eaglenet.life.edu/Student/UserProfile')
+
     // Confirmation Dialog section (PhoneContent, AddressContent, EmailContent, and CompleteContent)
     function PhoneContent(){
         return (
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Phone Number</TableCell>
-                        <TableCell>Type</TableCell>
-                        <TableCell>Edit</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    <TableRow>
-                        <TableCell>404-444-5555</TableCell>
-                        <TableCell>Sample</TableCell>
-                        <TableCell>
-                            <IconButton onClick={() => window.open('https://eaglenet.life.edu/Student/UserProfile')}>
-                                <Icon name="edit"/>
-                            </IconButton>
-                        </TableCell>
-                    </TableRow>
-                </TableBody>
-            </Table>
+            <>
+                {phoneData && (
+                    <Table className={classes.phoneTable}>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Phone Number</TableCell>
+                                <TableCell align="left">Type</TableCell>
+                                <TableCell align="center">Edit</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {phoneData.map((phone) => (
+                                <TableRow key={phone.Number}>
+                                    <TableCell>{phone.Number}</TableCell>
+                                    <TableCell align="left">{phone.TypeCode}</TableCell>
+                                    <TableCell align="center">
+                                        <IconButton onClick={() => window.open('https://eaglenet.life.edu/Student/UserProfile')}>
+                                            <Icon name="edit"/>
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
+            </>
         )
     }
 
     function AddressContent(){
         return (
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Address</TableCell>
-                        <TableCell>Type</TableCell>
-                        <TableCell>Preferred</TableCell>
-                        <TableCell>Edit</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    <TableRow>
-                        <TableCell>10247 Highway 92</TableCell>
-                        <TableCell>Sample</TableCell>
-                        <TableCell>
-                            <Icon name="check" />
-                        </TableCell>
-                        <TableCell>
-                            <IconButton onClick={() => window.open('https://eaglenet.life.edu/Student/UserProfile')}>
-                                <Icon name="edit"/>
-                            </IconButton>
-                        </TableCell>
-                    </TableRow>
-                </TableBody>
-            </Table>
+            <>
+            {addressData && (
+                <Table className={classes.addressTable}>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Address</TableCell>
+                            <TableCell align="left">Type</TableCell>
+                            <TableCell align="center">Preferred</TableCell>
+                            <TableCell align="center">Edit</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {addressData.map((address) => (
+                            <TableRow key={address.AddressId}>
+                                <TableCell>
+                                    {address.AddressLabel.map((line) => (
+                                        <Typography key={line} gutterBottom>
+                                            {`${line} `}
+                                        </Typography>
+                                        )
+                                    )}
+                                </TableCell>
+                                <TableCell align="left">{address.Type}</TableCell>
+                                <TableCell align="center" className="preferredIcon">
+                                    {address.IsPreferredAddress && (<Icon name="check" style={{height: 24, width: 24}}/>)}
+                                </TableCell>
+                                <TableCell align="center">
+                                    <IconButton onClick={() => window.open('https://eaglenet.life.edu/Student/UserProfile')}>
+                                        <Icon name="edit" style={{height: 24, width: 24}}/>
+                                    </IconButton>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            )}
+            </>
         )
     }
 
     function EmailContent(){
         return (
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Email</TableCell>
-                        <TableCell>Type</TableCell>
-                        <TableCell>Preferred</TableCell>
-                        <TableCell>Edit</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    <TableRow>
-                        <TableCell>wesssly.soronellas@life.edu</TableCell>
-                        <TableCell>Sample</TableCell>
-                        <TableCell>
-                            <Icon name="check" />
-                        </TableCell>
-                        <TableCell>
-                            <IconButton onClick={() => window.open('https://eaglenet.life.edu/Student/UserProfile')}>
-                                <Icon name="edit"/>
-                            </IconButton>
-                        </TableCell>
-                    </TableRow>
-                </TableBody>
-            </Table>
+            <>
+            {emailData && (
+                <Table className={classes.emailTable}>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Email</TableCell>
+                            <TableCell align="left">Type</TableCell>
+                            <TableCell align="center">Preferred</TableCell>
+                            <TableCell align="center">Edit</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {emailData.map((email) => {
+                            return (
+                                (email.TypeCode === 'WEB' || email.TypeCode == 'PER') && (
+                                    <TableRow key={email.Value}>
+                                            <>
+                                            <TableCell>{email.Value}</TableCell>
+                                            <TableCell align="left">{email.TypeCode}</TableCell>
+                                            <TableCell align="center" className="preferredIcon">
+                                                {email.IsPreferred && (<Icon name="check" style={{height: 24, width: 24}}/>)}
+                                            </TableCell>
+                                            <TableCell align="center">
+                                                <IconButton onClick={() => window.open('https://eaglenet.life.edu/Student/UserProfile')}>
+                                                    <Icon name="edit" style={{height: 24, width: 24}}/>
+                                                </IconButton>
+                                            </TableCell>
+                                            </>
+                                    </ TableRow>
+                                )
+                            )
+                        }
+                        )}
+                    </TableBody>
+                </Table>
+            )}
+            </>
         )
     }
 
-    function CompleteContent(){
-        const handleClick = () => console.log("handleClick was clicked");
-
-        return (
-            <div className={classnames(standardSpacingClasses, classes.completeConfirmGridDefinition)}>
-                <div className="phoneTitle">
-                    Phone Information
-                </div>
-                <div className="addressTitle">
-                    Address Information
-                </div>
-                <div className="emailTitle">
-                    Email Information
-                </div>
-                <div className="phoneContent">
-                    <PhoneContent />
-                </div>
-                <div className="addressContent">
-                    <AddressContent />
-                </div>
-                <div className="emailContent">
-                    <EmailContent />
-                </div>
-                <div className="phoneChecked">
-                    <Typography id="phone_checkbox_label" style={{display: 'inline-block'}}>
-                        confirm phone
-                    </Typography>
-                    <Checkbox
-                        inputProps={{
-                            'aria-labelledby': 'email_checkbox_label'
-                        }}
-                        checked={phoneChecked}
-                        onChange={() => setPhoneChecked(!phoneChecked)}
-                        value={`${phoneChecked}`}
-                    />
-                </div>
-                <div className="addressChecked">
-                    <Typography id="address_checkbox_label" style={{display: 'inline-block'}}>
-                        confirm address
-                    </Typography>
-                    <Checkbox
-                        inputProps={{
-                            'aria-labelledby': 'address_checkbox_label'
-                        }}
-                        checked={addressChecked}
-                        onChange={() => setAddressChecked(!addressChecked)}
-                        value={`${addressChecked}`}
-                    />
-                </div>
-                <div className="emailChecked">
-                    <Typography id="email_checkbox_label" style={{display: 'inline-block'}}>
-                        confirm email
-                    </Typography>
-                    <Checkbox
-                        inputProps={{
-                            'aria-labelledby': 'email_checkbox_label'
-                        }}
-                        checked={emailChecked}
-                        onChange={() => setEmailChecked(!emailChecked)}
-                        value={`${emailChecked}`}
-                    />
-                </div>
-            </div>
-        )
-    }
 
     return (
         <div className={classes.root}>
@@ -438,20 +502,41 @@ function ContactInformationWidget(props) {
                         <Icon name="email" style={{height: '40px', width: '40px'}}/>
                     </IconButton>
                     <div className="phoneStatus" align="center">
-                        Status <br /><Icon name={phoneStatusIcon} style={{color: phoneStatusText, backgroundColor: phoneStatusBackgroundColor, height: '24px', width: '24px'}}/>
+                        Status <br />
+                        <Tooltip
+                            id="phoneStatusTooltip"
+                            title={phoneStatusMessage}
+                            placement="bottom-end"
+                            >
+                                <Icon name={phoneStatusIcon} style={{color: phoneStatusText, backgroundColor: phoneStatusBackgroundColor, height: '24px', width: '24px'}}/>
+                        </Tooltip>
                     </div>
                     <div className="addressStatus" align="center" >
-                        Status <br /><Icon name={addressStatusIcon} style={{color: addressStatusText, backgroundColor: addressStatusBackgroundColor, height: '24px', width: '24px'}}/>
+                        Status <br />
+                        <Tooltip
+                            id="addressStatusTooltip"
+                            title={addressStatusMessage}
+                            placement="bottom"
+                            >
+                            <Icon name={addressStatusIcon} style={{color: addressStatusText, backgroundColor: addressStatusBackgroundColor, height: '24px', width: '24px'}}/>
+                        </Tooltip>
                     </div>
                     <div className="emailStatus" align="center">
-                        Status <br /> <Icon name={emailStatusIcon} style={{color: emailStatusText, backgroundColor: emailStatusBackgroundColor, height: '24px', width: '24px'}}/>
+                        Status <br />
+                        <Tooltip
+                            id="emailStatusTooltip"
+                            title={emailStatusMessage}
+                            placement="bottom-start"
+                            >
+                            <Icon name={emailStatusIcon} style={{color: emailStatusText, backgroundColor: emailStatusBackgroundColor, height: '24px', width: '24px'}}/>
+                         </Tooltip>
                     </div>
                     <div className="buttonGroup" align="center">
                     <ButtonGroup>
                         <Button onClick={onConfirmClick} color="secondary">
                             Confirm
                         </Button>
-                        <Button >
+                        <Button onClick={onUpdateClick}>
                             Update
                         </Button>
                     </ButtonGroup>

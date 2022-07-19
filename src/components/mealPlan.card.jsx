@@ -1,66 +1,31 @@
-import React, {useCallback, useEffect, useState} from 'react';
+/* eslint-disable @calm/react-intl/missing-formatted-message */
+import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { withStyles } from '@ellucian/react-design-system/core/styles';
 import {
-    Card,
-    CardHeader,
-    CardContent,
-    CardMedia,
-    Divider,
-    Grid,
-    Button,
     getSpacingStyles,
     spacingType,
-    CircularProgress,
     Typography,
-    Table,
-    TableHead,
-    TableRow,
-    TableCell,
-    TableBody,
-    useSpacing,
-    TextLink,
-    spacingVariant,
-    StatusLabel
+    TextLink
 } from '@ellucian/react-design-system/core';
-import {Icon} from '@ellucian/ds-icons/lib';
 import {
-    spacingInset10,
     spacingInset20,
     heightFluid,
-    widthFluid,
-    borderRadiusSmall,
     borderWidthThin,
-    colorFillLogoPreferred,
     colorFillAlertError,
-    colorBrandPrimary,
-    colorBrandSecondary,
     colorTextPrimary,
-    fountain200,
-    fountain300,
-    fountain400,
-    iris200,
-    iris300,
-    iris400,
-    kiwi200,
-    kiwi400,
     fontFamilyHeader,
     fontWeightBold,
     borderRadiusLarge,
-    borderRadiusXLarge,
-    colorTextAlertError,
-    colorTextAlertSuccess,
     colorBrandNeutral200,
-    colorBackgroundAlertError,
-    fontSizeHeader1,
     fontSizeHeader2,
+    fontSizeHeader2Small,
     fontSizeHeader5,
-    borderRadiusCircle,
     colorCtaBlueTint,
     layout10
  } from '@ellucian/react-design-system/core/styles/tokens';
- import { useCardControl, useCardInfo, useExtensionControl, useUserInfo } from '@ellucian/experience-extension/extension-utilities';
+ import {useExtensionControl} from '@ellucian/experience-extension/extension-utilities';
  import { MealPlanProvider, useMealPlanInformation } from '../context/meal-plan.context';
 
 
@@ -100,7 +65,8 @@ import {
             fontFamily: fontFamilyHeader,
             fontWeight: fontWeightBold,
             color: colorTextPrimary,
-            fontSize: fontSizeHeader2,
+            border: `${borderWidthThin} solid ${colorTextPrimary}`,
+            fontSize: fontSizeHeader2Small,
             borderRadius: borderRadiusLarge,
             width: "75%",
             margin: "auto"
@@ -111,7 +77,8 @@ import {
             fontFamily: fontFamilyHeader,
             fontWeight: fontWeightBold,
             color: colorTextPrimary,
-            fontSize: fontSizeHeader2,
+            border: `${borderWidthThin} solid ${colorTextPrimary}`,
+            fontSize: fontSizeHeader2Small,
             borderRadius: borderRadiusLarge,
             width: "75%",
             margin: "auto"
@@ -122,7 +89,8 @@ import {
             fontFamily: fontFamilyHeader,
             fontWeight: fontWeightBold,
             color: colorTextPrimary,
-            fontSize: fontSizeHeader2,
+            border: `${borderWidthThin} solid ${colorTextPrimary}`,
+            fontSize: fontSizeHeader2Small,
             borderRadius: borderRadiusLarge,
             width: "75%",
             margin: "auto"
@@ -143,6 +111,7 @@ import {
             fontFamily: fontFamilyHeader,
             fontWeight: fontWeightBold,
             color: colorTextPrimary,
+            border: `${borderWidthThin} solid ${colorTextPrimary}`,
             fontSize: fontSizeHeader2,
             borderRadius: borderRadiusLarge,
             width: "45%",
@@ -161,29 +130,25 @@ import {
 function MealPlanWidget(props) {
     const {classes} = props;
     // Experience SDK hooks
-    const { navigateToPage } = useCardControl();
     const { setErrorMessage, setLoadingStatus } = useExtensionControl();
-    const {data: mealData, isLoading: mealLoading, isError: mealIsError, error: mealError} = useMealPlanInformation();
+    const {data: mealData, isLoading: mealLoading, error: mealError} = useMealPlanInformation();
     const [eBucks, setEBucks] = useState();
     const [flexBucks, setFlexBucks] = useState();
     const [ePrint, setEPrint] = useState();
     const [boardPlan, setBoardPlan] = useState();
     const standardSpacingClasses= getSpacingStyles({
-        outerSpacing: true,
+        outerSpacing: false,
         spacing: 'none'
     }, spacingType.LAYOUT);
 
     useEffect(() => {
-        console.log(mealLoading);
+        setLoadingStatus(true);
     }, [mealLoading])
 
     useEffect(() => {
-        if (mealData) {
-            setBoardPlan(mealData.boardPlan);
-            console.log("board plan", mealData.boardPlan);
-        }
 
         if (mealData){
+            setBoardPlan(mealData.boardPlan);
             mealData.storedValue.map(value => {
                 if (value.name === 'eBucks'){
                     setEBucks(value);
@@ -195,7 +160,8 @@ function MealPlanWidget(props) {
                     setEPrint(value);
                 }
                 return value
-            })
+            });
+            setLoadingStatus(false);
         }
     }, [mealData]);
 
@@ -207,64 +173,9 @@ function MealPlanWidget(props) {
                 iconName: 'warning',
                 iconColor: colorFillAlertError
             });
+            setLoadingStatus(false);
         }
     }, [mealError, setErrorMessage]);
-
-    const mealTable = () => (
-        <>
-        {mealData && (
-            <div className={classnames(standardSpacingClasses, classes.grid2Definition)}>
-                <div className="full">
-                    <Typography variant="h5" align="center">Testing</Typography>
-                </div>
-                <Table className={classes.table}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>EagleCard Information</TableCell>
-                            <TableCell align="right">Balance</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                    {mealData.boardPlan.map(n => {
-                    return (
-                            <TableRow key={n.boardPlanId}>
-                                <TableCell>
-                                    <Typography gutterBottom variant="h5">{`${n.boardPlan}`}</Typography>
-                                </TableCell>
-                                <TableCell>
-                                    <div align="right">
-                                        <CircularProgress variant="static" value={((parseInt(n.semQtrRemaining, 10))/n.semQtrAllowed) * 100} />
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        );
-                    })}
-                    {mealData.storedValue.map(n => {
-                        return (
-                            <TableRow key={n.typeId}>
-                                <TableCell component="th" scope="row">
-                                    <Typography className={classes.title} variant="h5" gutterButtom>{n.name}</Typography>
-                                </TableCell>
-                                <TableCell align="right">
-                                    <Typography classes={classes.item} variant="h6" gutterButtom>
-                                    {new Intl.NumberFormat('en-US',
-                                    {style: 'currency', currency: 'USD'}).format(n.balance)}
-                                    </Typography>
-                                </TableCell>
-                            </TableRow>
-                        );
-                    })}
-                    </TableBody>
-                </Table>
-            </div>
-        )}
-       </>
-    )
-
-    const onTransactionsClick = useCallback(() => {
-        // open the page
-        navigateToPage({route: '/'});
-    }, [navigateToPage])
 
     return (
        <div className={classes.root}>
@@ -291,15 +202,15 @@ function MealPlanWidget(props) {
                 {boardPlan && boardPlan[0].boardPlan}
             </div>
             <div className="boardplanContent" align="center" >
-                 {boardPlan && boardPlan[0].semQtrRemaining} <Typography>swipes</Typography>
+                 {boardPlan ? (<>{boardPlan[0].semQtrRemaining} <Typography>swipes</Typography></>) : <Typography variant="h4" style={{padding: spacingInset20}}gutterBottom>No meal plan on file</Typography> }
             </div>
         </div>
         <div className={classes.moreInfo}>
-        <Typography variant="h5" align="center" gutterBottom>
+        <Typography variant="h5" align="center">
             For more information on meal plans, please click&nbsp;
             <TextLink
                 id={`more_info`}
-                href="https://www.ellucian.com/"
+                href="https://www.life.edu/campus-life-pages/eagle-card-services/meal-plans/"
             >
                 here
             </TextLink>.

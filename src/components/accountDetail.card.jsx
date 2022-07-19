@@ -1,73 +1,33 @@
+/* eslint-disable @calm/react-intl/missing-formatted-message */
 import React, {useCallback, useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { withStyles } from '@ellucian/react-design-system/core/styles';
 import {
     Button,
-    Card,
-    CardHeader,
-    CardContent,
-    CardMedia,
-    CircularProgress,
     Dropdown,
     DropdownItem,
-    Typography,
-    IconButton,
-    NotificationBadge,
-    Tooltip,
-    Table,
-    TableHead,
-    TableBody,
-    TableRow,
-    TableCell,
     getSpacingStyles,
     spacingType,
-    TextLink,
-    Grid,
-    Divider
+    TextLink
 } from '@ellucian/react-design-system/core';
-import {Icon} from '@ellucian/ds-icons/lib';
 import {
-    spacingInset10,
     spacingInset20,
-    heightFluid,
-    widthFluid,
-    borderRadiusSmall,
-    borderWidthThin,
-    colorFillLogoPreferred,
     colorFillAlertError,
-    colorBrandPrimary,
-    colorBrandSecondary,
     colorTextPrimary,
-    fountain200,
-    fountain300,
-    fountain400,
-    iris200,
-    iris300,
-    iris400,
-    kiwi200,
-    kiwi400,
     fontFamilyHeader,
     fontWeightBold,
     borderRadiusLarge,
-    borderRadiusXLarge,
-    colorTextAlertError,
-    colorTextAlertSuccess,
     colorBrandNeutral200,
-    colorBackgroundAlertError,
     fontSizeHeader4,
     fontSizeHeader2,
-    fontSizeDefault,
-    fontSizeHeader5,
-    borderRadiusCircle,
-    colorCtaBlueTint,
-    layout10
+    fontSizeDefault
  } from '@ellucian/react-design-system/core/styles/tokens';
- import { useCardControl, useCardInfo, useExtensionControl, useUserInfo } from '@ellucian/experience-extension/extension-utilities';
+ import { useCardControl, useExtensionControl} from '@ellucian/experience-extension/extension-utilities';
  import { AccountDetailProvider, useAccountDetail } from '../context/account-detail.context';
 
 
- const styles = theme => ({
+ const styles = () => ({
     root: {
         padding: spacingInset20
     },
@@ -118,22 +78,18 @@ function AccountBalanceWidget(props) {
     const {
         balance: {
             balanceData,
-            balanceIsError,
             balanceLoading,
             balanceError
         },
-        selectedTerm,
         setTerm,
         currentTerm: {
             currentTermData,
             currentTermLoading,
-            currentTermIsError,
             currentTermError
         },
         detail: {
             detailData,
             detailLoading,
-            detailIsError,
             detailError
         }
     } = useAccountDetail();
@@ -147,17 +103,17 @@ function AccountBalanceWidget(props) {
 
 
     useEffect(() => {
-        setLoadingStatus((balanceLoading || detailLoading));
-    }, [balanceLoading, detailLoading])
+        setLoadingStatus((balanceLoading || detailLoading || currentTermLoading));
+    }, [balanceLoading, detailLoading, currentTermLoading])
 
-     useEffect(() => {
+     /* useEffect(() => {
         if (balanceData) {
             console.log(balanceData);
         }
         if (detailData) {
             console.log(detailData);
         }
-    }, [balanceData, detailData])
+    }, [balanceData, detailData]) */
 
     useEffect(() => {
         if (balanceError) {
@@ -168,11 +124,11 @@ function AccountBalanceWidget(props) {
                 iconColor: colorFillAlertError
             });
         }
-    }, [balanceError, setErrorMessage]);
+    }, [balanceError, detailError, currentTermError, setErrorMessage]);
 
-    const onTransactionsClick = useCallback(() => {
+    const onDetailClick = useCallback(() => {
         // open the page
-        navigateToPage({route: '/'});
+        navigateToPage({route: '/account'});
     }, [navigateToPage])
 
     const handleChange = event => {
@@ -183,63 +139,6 @@ function AccountBalanceWidget(props) {
     /* useEffect(() => {
         console.log("Term in child", term)
     }, [term]) */
-
-    const OriginalRender = () => {
-        return (
-            <div className={classes.root}>
-                {balanceData && (
-                    <Dropdown
-                        label="Terms"
-                        onChange={handleChange}
-                        value={termSelected}
-                        open={dropdownOpen}
-                        onOpen={() => setDropdownOpen(true)}
-                        onClose={() => setDropdownOpen(false)}
-                    >
-                        {
-                            currentTermData && (
-                                <DropdownItem
-                                    key={currentTermData.code}
-                                    label={currentTermData.title}
-                                    value={currentTermData.code}
-                                />
-                            )
-                        }
-                         {balanceData.Periods.map((period) => {
-                            return (
-                                <DropdownItem
-                                key={period.Id}
-                                label={period.Description}
-                                value={period.Id}
-                            />
-                            )})
-                        }
-                    </Dropdown>
-                )}
-                <div>
-                    {detailData && (
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>
-                                        <Typography>Term Selected</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                         <Typography>{detailData.term}</Typography>
-                                    </TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                <TableRow>
-                                    <TableCell>Amount: ${detailData.AmountDue}</TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    )}
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className={classes.root}>
@@ -295,7 +194,7 @@ function AccountBalanceWidget(props) {
                         )}
                     </div>
                     <div className="viewDetailsButton" align="center" >
-                        <Button fluid color="primary">
+                        <Button fluid color="primary" onClick={onDetailClick}>
                             View Details
                         </Button>
                     </div>
