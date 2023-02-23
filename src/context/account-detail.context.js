@@ -12,9 +12,11 @@ import {fetchCurrentTerm, fetchProfileData, fetchBalanceDetail} from '../hooks/u
 function AccountDetailProviderInternal({children}) {
 
     const {getItem, storeItem} = useCache();
-    const {configuration, cardId} = useCardInfo();
+    const {configuration, cardConfiguration, cardId} = useCardInfo();
     const {getExtensionJwt, getEthosQuery} = useData();
-    const {baseApi: base} = configuration;
+    const {baseApi: base} = configuration || cardConfiguration || {};
+    const {termFromConfig} = configuration || cardConfiguration || {};
+    const {termFromConfigTitle} = configuration || cardConfiguration || {};
 
     // hooks to store cached data
     const [currentTermCachedData, setCurrentTermCachedData] = useState();
@@ -35,15 +37,15 @@ function AccountDetailProviderInternal({children}) {
     const [loadDetailFromQuery, setLoadDetailFromQuery] = useState(false);
 
     const {data: currentTermData, isLoading: currentTermLoading, isError: currentTermIsError, error: currentTermError} = useQuery(
-        ["currentTerm", {getEthosQuery}],
+        ["currentTerm", {getEthosQuery, termFromConfig, termFromConfigTitle}],
         fetchCurrentTerm,
         {
-            enabled: Boolean(loadCurrentTermFromQuery && getEthosQuery),
+            enabled: Boolean(loadCurrentTermFromQuery),
             placeholderData: currentTermCachedData
         }
     )
     const {data: detailData, isLoading: detailLoading, isError: detailIsError, error: detailError} = useQuery(
-        ["accountDetail", {getExtensionJwt, getEthosQuery, base, endpoint: 'account/detail', method: 'POST', term: selectedTerm}],
+        ["accountDetail", {getExtensionJwt, getEthosQuery, termFromConfig, termFromConfigTitle, base, endpoint: 'account/detail', method: 'POST', term: selectedTerm}],
         fetchBalanceDetail,
         {
             enabled: Boolean(loadDetailFromQuery && getExtensionJwt && base && selectedTerm)
@@ -63,7 +65,7 @@ function AccountDetailProviderInternal({children}) {
         if (loadCurrentTermFromCache){
             (async () => {
                 // check for cached data
-                const {data: currentTermCacheData} = await getItem({key: 'currentTerm'});
+                const {data: currentTermCacheData} = await getItem({key: 'currentTerm', scope: cardId});
 
                 unstable_batchedUpdates(() => {
                     setLoadCurrentTermFromCache(false);
@@ -84,7 +86,7 @@ function AccountDetailProviderInternal({children}) {
         if (loadBalanceFromCache){
             (async () => {
                 // check for cached data
-                const {data: accountBalanceCacheData} = await getItem({key: 'accountBalance'});
+                const {data: accountBalanceCacheData} = await getItem({key: 'accountBalance', scope: cardId});
 
                 unstable_batchedUpdates(() => {
                     setLoadCurrentTermFromCache(false);
@@ -104,7 +106,7 @@ function AccountDetailProviderInternal({children}) {
     useEffect(() => {
             (async () => {
                 // check for cached data
-                const {data: accountDetailCacheData} = await getItem({key: `accountDetail/${selectedTerm}`});
+                const {data: accountDetailCacheData} = await getItem({key: `accountDetail/${selectedTerm}`, scope: cardId});
 
                 unstable_batchedUpdates(() => {
                     setLoadDetailFromCache(false);
@@ -123,9 +125,9 @@ function AccountDetailProviderInternal({children}) {
 
     // useEffect for storing currentTerm data and turning off useState hooks
     useEffect(() => {
-        if (currentTermData) {
-            console.log('trying to store currentTerm in cache');
-            storeItem({data: currentTermData, key: 'currentTerm'});
+        if (currentTermData && cardId) {
+            console.log('trying to store currentTerm in cache', currentTermData);
+            storeItem({data: currentTermData, key: 'currentTerm', scope: cardId});
             setLoadCurrentTermFromCache(false);
             setLoadCurrentTermFromQuery(false);
         }
@@ -133,9 +135,9 @@ function AccountDetailProviderInternal({children}) {
 
     // useEffect for storing accountBalance data and turning off useState hooks
     useEffect(() => {
-        if (balanceData) {
+        if (balanceData && cardId) {
             console.log('trying to store balanceData in cache');
-            storeItem({data: balanceData, key: 'accountBalance'});
+            storeItem({data: balanceData, key: 'accountBalance', scope: cardId});
             setLoadBalanceFromCache(false);
             setLoadBalanceFromQuery(false);
         }
@@ -143,9 +145,9 @@ function AccountDetailProviderInternal({children}) {
 
     // useEffect for storing accountDetail data and turning off useState hooks
     useEffect(() => {
-        if (detailData) {
+        if (detailData && cardId) {
             console.log('trying to store detailData in cache');
-            storeItem({data: detailData, key: `accountDetail/${selectedTerm}`});
+            storeItem({data: detailData, key: `accountDetail/${selectedTerm}`, scope: cardId});
             setLoadDetailFromCache(false);
             setLoadDetailFromQuery(false);
         }
@@ -181,7 +183,7 @@ function AccountDetailProviderInternal({children}) {
         balanceLoading, currentTermLoading, detailLoading
         ]);
 
-   /*  useEffect(() => {
+    /* useEffect(() => {
         console.log('currentTerm cache logger');
         console.log('currentTermCachedData, the actual data object', currentTermCachedData);
         console.log('loadCurrentTermFromCache, hook to try cached data. Default is true', loadCurrentTermFromCache);
@@ -192,8 +194,8 @@ function AccountDetailProviderInternal({children}) {
         loadCurrentTermFromCache,
         loadCurrentTermFromQuery,
         currentTermData
-    ]);
- */
+    ]); */
+
     /* useEffect(() => {
         console.log('accountBalance cache logger');
         console.log('accountBalanceCachedData, the actual data object', accountBalanceCachedData);

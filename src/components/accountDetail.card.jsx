@@ -106,14 +106,17 @@ function AccountBalanceWidget(props) {
         setLoadingStatus((balanceLoading || detailLoading || currentTermLoading));
     }, [balanceLoading, detailLoading, currentTermLoading])
 
-     /* useEffect(() => {
+    useEffect(() => {
         if (balanceData) {
-            console.log(balanceData);
+            console.log("BALANCEDATA", balanceData);
         }
         if (detailData) {
-            console.log(detailData);
+            console.log("DETAIL DATA", detailData);
         }
-    }, [balanceData, detailData]) */
+        if (currentTermData) {
+            console.log("CURRENT TERM DATA", currentTermData);
+        }
+    }, [balanceData, detailData, currentTermData])
 
     useEffect(() => {
         if (balanceError) {
@@ -157,14 +160,17 @@ function AccountBalanceWidget(props) {
                         >
                             {
                                 currentTermData && (
-                                    <DropdownItem
-                                        key={currentTermData.code}
-                                        label={currentTermData.title}
-                                        value={currentTermData.code}
-                                    />
+                                    currentTermData.map((node) => {
+                                        return(
+                                        <DropdownItem
+                                        key={node.code}
+                                        label={node.title}
+                                        value={node.code}
+                                        />
+                                    )})
                                 )
-                            }
-                            {balanceData.Periods.map((period) => {
+                                }
+                            { balanceData.Periods.map((period) => {
                                 return (
                                     <DropdownItem
                                     key={period.Id}
@@ -172,12 +178,12 @@ function AccountBalanceWidget(props) {
                                     value={period.Id}
                                 />
                                 )})
-                            }
+                                }
                         </Dropdown>
                     </div>
                     {detailData && (
                         <div className="statementTitle" align="left">
-                            Account Balance - {detailData.term}
+                            Account Balance - {detailData[0]?.term}
                         </div>
                     )}
                     <div className="payNow" align="center">
@@ -189,9 +195,12 @@ function AccountBalanceWidget(props) {
                         </TextLink>
                     </div>
                     <div className="statementContent" align="center" >
-                        {detailData && (
-                            <span>{(new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(detailData.AmountDue))}</span>
-                        )}
+                        { detailData && (
+                            detailData.map((node) => (
+                                <span key={node.term}>{(new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(node.AmountDue))}</span>
+                            ))
+                        )
+                        }
                     </div>
                     <div className="viewDetailsButton" align="center" >
                         <Button fluid color="primary" onClick={onDetailClick}>

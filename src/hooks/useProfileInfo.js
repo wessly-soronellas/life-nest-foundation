@@ -1,15 +1,35 @@
 export async function fetchCurrentTerm({queryKey}){
-    const [_key, {getEthosQuery}] = queryKey
+    console.log('QUERY-KEY:', queryKey)
+    const [_key, {getEthosQuery, termFromConfig, termFromConfigTitle}] = queryKey;
+    console.log('queryKey CURRENT', _key);
     try {
+
         const event= new Date(Date.now());
         const jsonDate = event.toJSON();
         const datetime = jsonDate.substring(0, jsonDate.indexOf('T'));
-        const currentTerm = await getEthosQuery({queryId: 'get-this-term', properties: {'current': datetime}});
-        const {data: {term: {edges: termEdges } = []} = {} } = currentTerm;
-        const term = termEdges.map(edge => edge.node);
-        return term[0]
+        // console.log(datetime);
+        // const currentTerm = '23/SP';
+        if (getEthosQuery){
+            console.log('going GraphQL')
+            const currentTerm = await getEthosQuery({queryId: 'get-this-term', properties: {'current': datetime}});
+            // console.log('currentTerm', currentTerm);
+            const {data: {term: {edges: termEdges } = []} = {} } = currentTerm;
+            // console.log('TermEdges', termEdges);
+            const term = termEdges[0].node;
+            // console.log('Term', term);
+            const payload=[];
+            payload.push(term);
+            console.log('payload', payload);
+            return payload
+        } else {
+            console.log('Going Config')
+            return [{
+                code:termFromConfig,
+                title: termFromConfigTitle
+            }]
+        }
     } catch (error) {
-        throw new Error('Error during ethos query');
+        throw new Error('Error during ethos query - CURRENT');
     }
 }
 
@@ -33,56 +53,53 @@ export async function fetchProfileData({queryKey}){
 }
 
 export async function fetchBalanceDetail({queryKey}){
-    const [_key, {getExtensionJwt, getEthosQuery, base, endpoint, method, term}] = queryKey
-    console.log(queryKey);
-    const payload={"term":term}
+    const [_key, {getExtensionJwt, getEthosQuery, termFromConfig, termFromConfigTitle, base, endpoint, method, term}] = queryKey
+
+    console.log('TERM', term);
 
     if (term === 'default'){
         try {
-            // console.log("trying to fetch with default logic");
-            const event= new Date(Date.now());
-            // console.log("current date", event);
-            const jsonDate = event.toJSON();
-            // console.log("current date to JSON", jsonDate);
-            const datetime = jsonDate.substring(0, jsonDate.indexOf('T'));
-            // console.log("Current date to datetime slice", datetime);
-            const currentTerm = await getEthosQuery({queryId: 'get-this-term', properties: {'current': datetime}});
-            // console.log("current term: ", currentTerm);
-            const {data: {term: {edges: termEdges } = []} = {} } = currentTerm;
-            // console.log("termEdges: ", termEdges);
-            const term = termEdges.map(edge => edge.node);
-            // console.log("term: ", term);
-            const defaultTerm = term[0].code
-            // console.log("default term: ", defaultTerm);
+             console.log("trying to fetch with default logic");
+            const defaultTerm = await fetchCurrentTerm({queryKey: ['currentTerm', {getEthosQuery, termFromConfig, termFromConfigTitle}]});
+            // const defaultTerm = '23/SP';
+            console.log("default term: ", defaultTerm[0].code);
             const url = `${base}/${endpoint}`;
             // console.log("url: ", url);
             const jwt = await getExtensionJwt();
             // console.log("jwt: ", jwt);
-            return fetch(url, {
+            const payload = [];
+            const response = await fetch(url, {
                 method: method,
                 headers: {
                     'Authorization': `Bearer ${jwt}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({term: defaultTerm})
+                body: JSON.stringify({term: defaultTerm[0].code})
             })
-            .then(res => res.json())
+            .then(res => res.json());
+            payload.push(response);
+            return payload;
         } catch (error) {
-            throw new Error('Error during ethos query');
+            console.log(error);
+            throw new Error('Error during ethos query - DEATIL');
         }
     } else {
         try {
+            console.log("Other Term used for detail:", term);
             const url = `${base}/${endpoint}`;
             const jwt = await getExtensionJwt();
-            return fetch(url, {
+            const payload = [];
+            const response = await fetch(url, {
                 method: method,
                 headers: {
                     'Authorization': `Bearer ${jwt}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({term: term})
             })
-            .then(res => res.json())
+            .then(res => res.json());
+            payload.push(response);
+            return payload;
         } catch (error) {
             console.log(error);
             return error

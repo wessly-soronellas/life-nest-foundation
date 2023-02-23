@@ -13,6 +13,16 @@ module.exports = {
                 label: 'Base API',
                 type: 'text',
                 required: true
+            }, {
+                key: 'termFromConfig',
+                label: 'Current Term',
+                type: 'text',
+                required: true
+            }, {
+                key: 'termFromConfigTitle',
+                label: 'Current Term Label',
+                type: 'text',
+                required: true
             }]
         },
         queries: {

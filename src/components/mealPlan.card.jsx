@@ -136,6 +136,7 @@ function MealPlanWidget(props) {
     const [flexBucks, setFlexBucks] = useState();
     const [ePrint, setEPrint] = useState();
     const [boardPlan, setBoardPlan] = useState();
+    const [hasBoardPlan, setHasBoardPlan] = useState();
     const standardSpacingClasses= getSpacingStyles({
         outerSpacing: false,
         spacing: 'none'
@@ -148,7 +149,11 @@ function MealPlanWidget(props) {
     useEffect(() => {
 
         if (mealData){
-            setBoardPlan(mealData.boardPlan);
+            if (mealData.boardPlan.length > 0){
+                setHasBoardPlan(true);
+                setBoardPlan(mealData.boardPlan);
+            }
+
             mealData.storedValue.map(value => {
                 if (value.name === 'eBucks'){
                     setEBucks(value);
@@ -163,6 +168,7 @@ function MealPlanWidget(props) {
             });
             setLoadingStatus(false);
         }
+
     }, [mealData]);
 
     useEffect(() => {
@@ -198,12 +204,27 @@ function MealPlanWidget(props) {
             <div className="eprintContent" align="center" >
                 {ePrint ? (new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(ePrint.balance)) : 'N/A'}
             </div>
-            <div className="boardplanTitle" align="center" >
-                {boardPlan && boardPlan[0].boardPlan}
-            </div>
-            <div className="boardplanContent" align="center" >
-                 {boardPlan ? (<>{boardPlan[0].semQtrRemaining} <Typography>swipes</Typography></>) : <Typography variant="h4" style={{padding: spacingInset20}}gutterBottom>No meal plan on file</Typography> }
-            </div>
+            {
+                hasBoardPlan ? (
+                    <>
+                        <div className="boardplanTitle" align="center" >
+                            {boardPlan && boardPlan[0].boardPlan}
+                        </div>
+                        <div className="boardplanContent" align="center" >
+                            {boardPlan && (<>{boardPlan[0].semQtrRemaining} <Typography>swipes</Typography></>) }
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="boardplanTitle" align="center" >
+                            Board Plan
+                        </div>
+                        <div className="boardplanContent" align="center" >
+                            <Typography variant="h4" style={{padding: spacingInset20}}gutterBottom>No meal plan on file</Typography>
+                        </div>
+                    </>
+                )
+            }
         </div>
         <div className={classes.moreInfo}>
         <Typography variant="h5" align="center">

@@ -12,9 +12,9 @@ import {fetchProfileData} from '../hooks/useProfileInfo';
 function ContactInformationProviderInternal({children}) {
 
     const {getItem, storeItem} = useCache();
-    const {configuration} = useCardInfo();
+    const {configuration, cardConfiguration} = useCardInfo();
     const {getExtensionJwt} = useData();
-    const {baseApi: base} = configuration;
+    const {baseApi: base} = configuration || cardConfiguration || {};
 
     const [ loadContactDataFromCache, setLoadContactDataFromCache] = useState(true);
     const [ loadContactDataFromQuery, setLoadContactDataFromQuery] = useState(false);
