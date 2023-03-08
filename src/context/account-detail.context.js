@@ -45,7 +45,7 @@ function AccountDetailProviderInternal({children}) {
         }
     )
     const {data: detailData, isLoading: detailLoading, isError: detailIsError, error: detailError} = useQuery(
-        ["accountDetail", {getExtensionJwt, getEthosQuery, termFromConfig, termFromConfigTitle, base, endpoint: 'account/detail', method: 'POST', term: selectedTerm}],
+        ["accountDetail", {getExtensionJwt, getEthosQuery, termFromConfig, termFromConfigTitle, base, endpoint: 'account/summary', method: 'POST', term: selectedTerm}],
         fetchBalanceDetail,
         {
             enabled: Boolean(loadDetailFromQuery && getExtensionJwt && base && selectedTerm)
@@ -136,7 +136,7 @@ function AccountDetailProviderInternal({children}) {
     // useEffect for storing accountBalance data and turning off useState hooks
     useEffect(() => {
         if (balanceData && cardId) {
-            console.log('trying to store balanceData in cache');
+            // console.log('trying to store balanceData in cache');
             storeItem({data: balanceData, key: 'accountBalance', scope: cardId});
             setLoadBalanceFromCache(false);
             setLoadBalanceFromQuery(false);
@@ -146,7 +146,7 @@ function AccountDetailProviderInternal({children}) {
     // useEffect for storing accountDetail data and turning off useState hooks
     useEffect(() => {
         if (detailData && cardId) {
-            console.log('trying to store detailData in cache');
+            // console.log('trying to store detailData in cache');
             storeItem({data: detailData, key: `accountDetail/${selectedTerm}`, scope: cardId});
             setLoadDetailFromCache(false);
             setLoadDetailFromQuery(false);

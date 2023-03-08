@@ -1,7 +1,7 @@
 export async function fetchCurrentTerm({queryKey}){
     console.log('QUERY-KEY:', queryKey)
     const [_key, {getEthosQuery, termFromConfig, termFromConfigTitle}] = queryKey;
-    console.log('queryKey CURRENT', _key);
+    // console.log('queryKey CURRENT', _key);
     try {
 
         const event= new Date(Date.now());
@@ -9,8 +9,9 @@ export async function fetchCurrentTerm({queryKey}){
         const datetime = jsonDate.substring(0, jsonDate.indexOf('T'));
         // console.log(datetime);
         // const currentTerm = '23/SP';
-        if (getEthosQuery){
-            console.log('going GraphQL')
+
+        // Try to use getEthosQuery but use default term set up in config if there's an error
+        try{
             const currentTerm = await getEthosQuery({queryId: 'get-this-term', properties: {'current': datetime}});
             // console.log('currentTerm', currentTerm);
             const {data: {term: {edges: termEdges } = []} = {} } = currentTerm;
@@ -19,10 +20,11 @@ export async function fetchCurrentTerm({queryKey}){
             // console.log('Term', term);
             const payload=[];
             payload.push(term);
-            console.log('payload', payload);
+            // console.log('payload', payload);
             return payload
-        } else {
-            console.log('Going Config')
+
+        } catch (e) {
+            // console.log('Going Config', e);
             return [{
                 code:termFromConfig,
                 title: termFromConfigTitle
@@ -55,14 +57,14 @@ export async function fetchProfileData({queryKey}){
 export async function fetchBalanceDetail({queryKey}){
     const [_key, {getExtensionJwt, getEthosQuery, termFromConfig, termFromConfigTitle, base, endpoint, method, term}] = queryKey
 
-    console.log('TERM', term);
+    // console.log('TERM', term);
 
     if (term === 'default'){
         try {
              console.log("trying to fetch with default logic");
             const defaultTerm = await fetchCurrentTerm({queryKey: ['currentTerm', {getEthosQuery, termFromConfig, termFromConfigTitle}]});
             // const defaultTerm = '23/SP';
-            console.log("default term: ", defaultTerm[0].code);
+            // console.log("default term: ", defaultTerm[0].code);
             const url = `${base}/${endpoint}`;
             // console.log("url: ", url);
             const jwt = await getExtensionJwt();
@@ -85,7 +87,7 @@ export async function fetchBalanceDetail({queryKey}){
         }
     } else {
         try {
-            console.log("Other Term used for detail:", term);
+            // console.log("Other Term used for detail:", term);
             const url = `${base}/${endpoint}`;
             const jwt = await getExtensionJwt();
             const payload = [];

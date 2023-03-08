@@ -34,12 +34,16 @@ import {
     FormGroup,
     FormLabel,
     FormControlLabel,
+    Paper,
+    TableExpandableRow,
     Checkbox
 } from '@ellucian/react-design-system/core';
 import {Icon} from '@ellucian/ds-icons/lib';
 import {
     spacingInset10,
     spacingInset20,
+    spacing30,
+    spacingInsetTall40,
     heightFluid,
     widthFluid,
     borderRadiusSmall,
@@ -81,10 +85,11 @@ import {
 
 
 
-const styles = () => ({
+const styles = (theme) => ({
     root: {
         height: '100%',
-        overflowY: 'auto'
+        overflowY: 'auto',
+        padding: spacingInsetTall40
     },
     navContainer:{
         height: '70px',
@@ -156,11 +161,77 @@ const styles = () => ({
             height: heightFluid,
             margin: "auto"
         }
+    },
+    heading: {
+        fontSize: theme.typography.pxToRem(15)
+    },
+    secondaryHeading: {
+        fontSize: theme.typography.pxToRem(15),
+        color: theme.palette.text.secondary
+    },
+    icon: {
+        verticalAlign: 'bottom',
+        height: 20,
+        width: 20
+    },
+    details: {
+        alignItems: 'center'
+    },
+    column: {
+        flexBasis: '33.33%'
+    },
+    helper: {
+        borderLeft: `2px solid ${theme.palette.divider}`,
+        padding: theme.spacing(1, 2)
+    },
+    childTable: {
+        width: widthFluid
+    },
+    childContainer: {
+        width: "95%"
+    },
+    noteContainer: {
+        paddingTop: spacing30,
+        paddingBottom: spacing30
+    },
+    headerContainer: {
+        backgroundColor: '#E9E9E9',
+        color: "#141d28",
+        width: "100%"
+    },
+    footer: {
+        backgroundColor: '#141d28',
+        color: "white",
+        paddingRight: spacing30,
+        paddingLeft: spacing30,
+        paddingBottom: spacing30
+    },
+    footerContainer: {
+        paddingTop: spacing30,
+        paddingBottom: spacing30
+    },
+    footerText: {
+        color: "white"
+    },
+    button: {
+        paddingBottom: spacing30
+    },
+    alert: {
+        paddingTop: spacing30,
+        alignItems: "center"
+    },
+    table: {
+        backgroundColor: "white"
+    },
+    card: {
+        color: "white",
+        backgroundColor: "#141d28"
     }
 })
 
 function BasePage(props){
     const {classes} = props;
+    const baseURL = 'https://eaglenet.life.edu/Student/Finance';
     // Experience SDK hooks
     const { navigateToPage } = useCardControl();
     const { setErrorMessage, setLoadingStatus } = useExtensionControl();
@@ -168,21 +239,66 @@ function BasePage(props){
         outerSpacing: true,
         spacing: 'standard'
     }, spacingType.LAYOUT);
+    const {
+        balance: {
+            balanceData,
+            balanceLoading,
+            balanceError
+        },
+        setTerm,
+        currentTerm: {
+            currentTermData,
+            currentTermLoading,
+            currentTermError
+        },
+        detail: {
+            detailData,
+            detailLoading,
+            detailError
+        }
+    } = useAccountDetail();
 
     const [termSelected, setTermSelected] = useState();
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [expandAll, setExpandAll] = useState(false);
+    const [ balanceDetailChild, setBalanceDetailChild ] = useState();
+    const [ balanceDetailNoChild, setBalanceDetailNoChild ] = useState();
+    const [open, setOpen] = useState(false);
 
     const {getItem, storeItem} = useCache();
     const {configuration, cardConfiguration, cardId} = useCardInfo();
     const {getExtensionJwt, getEthosQuery} = useData();
     const {baseApi: base} = configuration || cardConfiguration || {};
 
+    const handleChange = event => {
+        setTermSelected(event.target.value)
+        setTerm(event.target.value)
+    }
 
+    const toggleOpen = () =>  {
+        setOpen(() => !open);
+    };
+
+    const toggleExpandAll= () => {
+        setOpen(() => !open)
+    };
 
 
     /* useEffect(() => {
         setLoadingStatus((balanceLoading || detailLoading || currentTermLoading));
     }, [balanceLoading, detailLoading, currentTermLoading]) */
+
+    useEffect(() => {
+        if (detailData) {
+            console.log("DETAIL DATA", detailData);
+            const children = detailData[0].sections.filter(node => node.children !== undefined);
+            console.log("children", children);
+            setBalanceDetailChild(() => children);
+            const noChildren = detailData[0].sections.filter(node => node.children === undefined);
+            console.log("NO children", noChildren);
+            setBalanceDetailNoChild(() => noChildren);
+        }
+    }, [detailData]);
 
 
 
@@ -192,13 +308,170 @@ function BasePage(props){
                     <div className="section1" align="center">
                         section1
                         <Card>
-                            Test
+                            {balanceData && (
+                                <Dropdown
+                                label="Terms"
+                                onChange={handleChange}
+                                value={termSelected}
+                                open={dropdownOpen}
+                                onOpen={() => setDropdownOpen(true)}
+                                onClose={() => setDropdownOpen(false)}
+                                autoWidth={true}
+                                fullWidth
+                            >
+                                {
+                                    currentTermData && (
+                                        currentTermData.map((node) => {
+                                            return(
+                                            <DropdownItem
+                                            key={node.code}
+                                            label={node.title}
+                                            value={node.code}
+                                            />
+                                        )})
+                                    )
+                                    }
+                                { balanceData.Periods.map((period) => {
+                                    return (
+                                        <DropdownItem
+                                        key={period.Id}
+                                        label={period.Description}
+                                        value={period.Id}
+                                    />
+                                    )})
+                                    }
+                            </Dropdown>
+                            )}
                         </Card>
+
+                        section2
+                        <Card>
+                            Cafe Status
+                        </Card>
+                    section3
+                        <Card>
+                        Contact Info
+                       </Card>
                     </div>
                     <div className="main1" align="center">
                     main1
                         <Card>
-                            Main Information
+                        {detailData&&(
+                    <div id="note" className = {classes.balanceContainer}>
+                    <div id="alert" className = {classes.alert}>
+                        <Typography align="center" gutterBottom>
+                            <StatusLabel type="draft" text="Alert: Your account balance is due by the end of the 2nd week of each quarter. Make sure your balance is zero to avoid disenrollment and a 25% fee."/>
+                        </Typography>
+                    </div>
+                    <div id="button-container" className={classes.button}>
+                        <Button color="primary" onClick={toggleExpandAll}> Expand All </Button>
+                            <Typography variant="body3" gutterBottom>
+                                Note: Toggle the EXPAND ALL button to open and/or close all items.
+                            </Typography>
+                    </div>
+                    <Paper className={classes.headerContainer}>
+                        <Table id="parent">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>
+                                        <Typography variant="h5">Name</Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="h5">Amount</Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="h5">Actions</Typography>
+                                    </TableCell>
+                                    {balanceDetailChild &&(<TableCell />)}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody className={classes.table}>
+                                {balanceDetailNoChild && (
+                                    balanceDetailNoChild.map(obj => (
+                                        <TableRow key={obj.displayName}>
+                                            <TableCell >{obj.displayName}</TableCell>
+                                            <TableCell>{`${new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(Math.abs(obj.amount))}`}</TableCell>
+                                            <TableCell>
+                                                <TextLink
+                                                    href={`${baseURL}`}
+                                                    target="_blank"
+                                                    >
+                                                    View
+                                                </TextLink>
+                                            </TableCell>
+                                            {balanceDetailChild &&(<TableCell />)}
+                                        </TableRow>
+                                    ))
+                                )}
+                                {balanceDetailChild && (
+                                    balanceDetailChild.map(obj => (
+                                        <TableExpandableRow
+                                        id="child"
+                                        key={obj.displayName}
+                                        expandedRowContent={
+                                            balanceDetailChild && (
+                                                <Paper className={classes.childContainer}>
+                                                <Table>
+                                                    <TableHead>
+                                                        <TableRow>
+                                                            <TableCell>Name</TableCell>
+                                                            <TableCell>Amount (USD)</TableCell>
+                                                        </TableRow>
+                                                    </TableHead>
+                                                    <TableBody>
+                                                        {obj.children.map(child => (
+                                                            <TableRow key={child.displayName}>
+                                                                <TableCell>{child.displayName}</TableCell>
+                                                                <TableCell>{`${new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(Math.abs(child.amount))}`}</TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                                </Paper>
+                                            )}
+                                        expand={open}
+                                        onExpand={toggleOpen}>
+                                            <TableCell >{obj.displayName}</TableCell>
+                                            <TableCell>{`${new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(Math.abs(obj.amount))}`}</TableCell>
+                                            <TableCell>
+                                                <TextLink
+                                                    href={`${baseURL}`}
+                                                    target="_blank"
+                                                    >
+                                                    View
+                                                </TextLink>
+                                            </TableCell>
+                                        </TableExpandableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </Paper>
+                    <br />
+                    <div className={classes.footerContainer}>
+                        <Paper className={classes.footer}>
+                            <Table>
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell>
+                                            <Typography variant="h5" className={classes.footerText}>
+                                                Balance:
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell />
+                                        <TableCell />
+                                        <TableCell>
+                                            <Typography align="right" variant="h5" className={classes.footerText}>
+                                                {`${new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(detailData[0].AmountDue)}`}
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </Paper>
+                    </div>
+                </div>
+                )}
                         </Card>
                     </div>
                     <div className="section2" align="center">
