@@ -3,23 +3,29 @@ import PropTypes from 'prop-types';
 // eslint-disable-next-line camelcase
 import {unstable_batchedUpdates} from 'react-dom';
 import {QueryClient, QueryClientProvider, useQuery} from 'react-query';
-import {useCache, useCardInfo, useData} from '@ellucian/experience-extension/extension-utilities';
+import {useCache, useCardInfo, useData, useExtensionInfo} from '@ellucian/experience-extension/extension-utilities';
 const Context = createContext();
 const cacheKey = 'profile-dashboard';
 const queryClient = new QueryClient();
-import {fetchCurrentTerm, fetchProfileData, fetchBalanceDetail} from '../hooks/useProfileInfo';
+import {fetchCurrentTerm, fetchProfileData, fetchBalanceDetail, fetchEthosQuery} from '../hooks/useProfileInfo';
 
 function AccountDetailProviderInternal({children}) {
 
     const {getItem, storeItem} = useCache();
-    const {configuration, cardConfiguration, cardId} = useCardInfo();
+    const {configuration, cardConfiguration, extensionId: cardExtensionId, cardId} = useCardInfo();
+    const {extensionId: pageExtensionId} = useExtensionInfo();
     const {getExtensionJwt, getEthosQuery} = useData();
     const {baseApi: base} = configuration || cardConfiguration || {};
     const {termFromConfig} = configuration || cardConfiguration || {};
     const {termFromConfigTitle} = configuration || cardConfiguration || {};
+    const extensionId = cardExtensionId || pageExtensionId || {};
+
+    // variables to obtain ethos query payload
+    const ethosQueryUrl = 'https://experience-test.elluciancloud.com/api/ethos-query';
 
     // hooks to store cached data
     const [currentTermCachedData, setCurrentTermCachedData] = useState();
+    const [currentEthosTermCachedData, setCurrentEthosTermCachedData] = useState();
     const [accountDetailCachedData, setAccountDetailCachedData] = useState();
     const [accountBalanceCachedData, setAccountBalanceCachedData] = useState();
 
@@ -28,11 +34,13 @@ function AccountDetailProviderInternal({children}) {
 
     // hooks to signal load cached data status. Default is true so first attempt is trying to fecth from cache.
     const [loadCurrentTermFromCache, setLoadCurrentTermFromCache] = useState(true);
+    const [loadCurrentEthosTermFromCache, setLoadCurrentEthosTermFromCache] = useState(true);
     const [loadBalanceFromCache, setLoadBalanceFromCache] = useState(true);
     const [loadDetailFromCache, setLoadDetailFromCache] = useState(true);
 
     // hooks to signal load from query status. Default is false so first attempt is done using cached data.
     const [loadCurrentTermFromQuery, setLoadCurrentTermFromQuery] = useState(false);
+    const [loadCurrentEthosTermFromQuery, setLoadCurrentEthosTermFromQuery] = useState(false);
     const [loadBalanceFromQuery, setLoadBalanceFromQuery] = useState(false);
     const [loadDetailFromQuery, setLoadDetailFromQuery] = useState(false);
 
@@ -44,8 +52,16 @@ function AccountDetailProviderInternal({children}) {
             placeholderData: currentTermCachedData
         }
     )
+    const {data: currentEthosTermData, isLoading: currentEthosTermLoading, isError: currentEthosTermIsError, error: currentEthosTermError} = useQuery(
+        ["currentEthosTerm", {extensionId, cardId, manifestType: 'ProfileCardMock', queryId: 'get-this-term', url: ethosQueryUrl, method: 'POST', termFromConfig, termFromConfigTitle}],
+        fetchEthosQuery,
+        {
+            enabled: Boolean(loadCurrentEthosTermFromQuery),
+            placeholderData: currentEthosTermCachedData
+        }
+    )
     const {data: detailData, isLoading: detailLoading, isError: detailIsError, error: detailError} = useQuery(
-        ["accountDetail", {getExtensionJwt, getEthosQuery, termFromConfig, termFromConfigTitle, base, endpoint: 'account/summary', method: 'POST', term: selectedTerm}],
+        ["accountDetail", {getExtensionJwt, extensionId, cardId, manifestType: 'ProfileCardMock', queryId: 'get-this-term', url: ethosQueryUrl, termFromConfig, termFromConfigTitle, base, endpoint: 'account/summary', method: 'POST', term: selectedTerm}],
         fetchBalanceDetail,
         {
             enabled: Boolean(loadDetailFromQuery && getExtensionJwt && base && selectedTerm)
@@ -80,6 +96,27 @@ function AccountDetailProviderInternal({children}) {
             })();
         }
     }, [loadCurrentTermFromCache]);
+
+    // useEffect for performing currentTerm cache checking logic
+    useEffect(() => {
+        if (loadCurrentEthosTermFromCache){
+            (async () => {
+                // check for cached data
+                const {data: currentEthosTermCacheData} = await getItem({key: 'currentEthosTerm', scope: cardId});
+
+                unstable_batchedUpdates(() => {
+                    setLoadCurrentTermFromCache(false);
+
+                    if (currentEthosTermCacheData){
+                        setCurrentEthosTermCachedData(currentEthosTermCacheData);
+                        setLoadCurrentEthosTermFromQuery(false);
+                    } else {
+                        setLoadCurrentEthosTermFromQuery(true);
+                    }
+                })
+            })();
+        }
+    }, [loadCurrentEthosTermFromCache]);
 
     // useEffect for performing balanceData cache checking logic
     useEffect(() => {
@@ -133,6 +170,16 @@ function AccountDetailProviderInternal({children}) {
         }
     }, [currentTermData]);
 
+    // useEffect for storing currentTerm data and turning off useState hooks
+    useEffect(() => {
+        if (currentEthosTermData && cardId) {
+            console.log('trying to store currentEthosTerm in cache', currentEthosTermData);
+            storeItem({data: currentEthosTermData, key: 'currentEthosTerm', scope: cardId});
+            setLoadCurrentEthosTermFromCache(false);
+            setLoadCurrentEthosTermFromQuery(false);
+        }
+    }, [currentEthosTermData]);
+
     // useEffect for storing accountBalance data and turning off useState hooks
     useEffect(() => {
         if (balanceData && cardId) {
@@ -166,6 +213,12 @@ function AccountDetailProviderInternal({children}) {
                 currentTermLoading,
                 currentTermIsError,
                 currentTermError
+            },
+            currentEthosTerm: {
+                currentEthosTermData: currentEthosTermData || currentEthosTermCachedData,
+                currentEthosTermLoading,
+                currentEthosTermIsError,
+                currentEthosTermError
             },
             selectedTerm,
             setTerm: (term) => setSelectedTerm(term),

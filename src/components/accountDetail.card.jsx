@@ -87,6 +87,11 @@ function AccountBalanceWidget(props) {
             currentTermLoading,
             currentTermError
         },
+        currentEthosTerm: {
+            currentEthosTermData,
+            currentEthosTermLoading,
+            currentEthosTermError
+        },
         detail: {
             detailData,
             detailLoading,
@@ -116,7 +121,10 @@ function AccountBalanceWidget(props) {
         if (currentTermData) {
             console.log("CURRENT TERM DATA", currentTermData);
         }
-    }, [balanceData, detailData, currentTermData])
+        if (currentEthosTermData) {
+            console.log("CURRENT ETHOS TERM DATA", currentEthosTermData);
+        }
+    }, [balanceData, detailData, currentTermData, currentEthosTermData])
 
     useEffect(() => {
         if (balanceError) {
@@ -159,8 +167,8 @@ function AccountBalanceWidget(props) {
                             fullWidth
                         >
                             {
-                                currentTermData && (
-                                    currentTermData.map((node) => {
+                                currentEthosTermData && (
+                                    currentEthosTermData.map((node) => {
                                         return(
                                         <DropdownItem
                                         key={node.code}

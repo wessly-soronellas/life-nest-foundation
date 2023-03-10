@@ -54,6 +54,33 @@ module.exports = {
         }
     }],
     "page": {
-        "source": "./src/index.jsx"
+        "source": "./src/index.jsx",
+        queries: {
+            "get-this-term": [
+                {
+                    "resourceVersions": {"academicPeriods": {min: 16}},
+                    "query": `query currentTerm($current: Date) {
+                        term: academicPeriods16(filter: 
+                              {AND: 
+                                  [
+                                      {OR:
+                                          [{endOn: {AFTER: $current}}, {endOn: {EQ: $current}} ]
+                                      }
+                                  ]
+                              }) {
+                          edges {
+                            node{
+                                id
+                                code
+                                startOn
+                                endOn
+                                title
+                            }
+                          }
+                        }
+                      }`
+                }
+            ]
+        }
     }
 }

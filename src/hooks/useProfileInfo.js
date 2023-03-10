@@ -35,6 +35,56 @@ export async function fetchCurrentTerm({queryKey}){
     }
 }
 
+export async function fetchEthosQuery({queryKey}){
+    console.log('QUERY-KEY:', queryKey)
+    const [_key, {extensionId, cardId, manifestType, queryId, url, method, termFromConfig, termFromConfigTitle}] = queryKey;
+    // console.log('queryKey CURRENT', _key);
+    try {
+
+        const event= new Date(Date.now());
+        const jsonDate = event.toJSON();
+        const datetime = jsonDate.substring(0, jsonDate.indexOf('T'));
+        console.log(datetime);
+
+        const body = {
+            extensionId,
+            cardId,
+            manifestType,
+            queryId,
+            properties: {current: datetime}
+        };
+
+        // const currentTerm = '23/SP';
+
+        // Try to use getEthosQuery but use default term set up in config if there's an error
+        try{
+            const currentTerm = await fetch(url, {
+                method,
+                body: JSON.stringify(body)
+            })
+            .then(res => res.json());
+            console.log('currentTerm', currentTerm);
+            const {data: {term: {edges: termEdges } = []} = {} } = currentTerm;
+            // console.log('TermEdges', termEdges);
+            const term = termEdges[0].node;
+            // console.log('Term', term);
+            const payload=[];
+            payload.push(term);
+            // console.log('payload', payload);
+            return payload
+
+        } catch (e) {
+            console.log('Going Config', e);
+            return [{
+                code:termFromConfig,
+                title: termFromConfigTitle
+            }]
+        }
+    } catch (error) {
+        throw new Error('Error during manual ethos query');
+    }
+}
+
 export async function fetchProfileData({queryKey}){
     const [_key, {getExtensionJwt, base, endpoint, method}] = queryKey
 
@@ -55,14 +105,14 @@ export async function fetchProfileData({queryKey}){
 }
 
 export async function fetchBalanceDetail({queryKey}){
-    const [_key, {getExtensionJwt, getEthosQuery, termFromConfig, termFromConfigTitle, base, endpoint, method, term}] = queryKey
+    const [_key, {getExtensionJwt, extensionId, cardId, manifestType, queryId, url: ethosUrl, termFromConfig, termFromConfigTitle, base, endpoint, method, term}] = queryKey
 
     // console.log('TERM', term);
 
     if (term === 'default'){
         try {
              console.log("trying to fetch with default logic");
-            const defaultTerm = await fetchCurrentTerm({queryKey: ['currentTerm', {getEthosQuery, termFromConfig, termFromConfigTitle}]});
+            const defaultTerm = await fetchEthosQuery({queryKey: ['currentEthosTerm', {extensionId, cardId, manifestType, queryId, url: ethosUrl, method, termFromConfig, termFromConfigTitle}]});
             // const defaultTerm = '23/SP';
             // console.log("default term: ", defaultTerm[0].code);
             const url = `${base}/${endpoint}`;

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React from "react";
 import PropTypes from 'prop-types';
 import {
@@ -12,6 +13,7 @@ import ContactInfo from './page/ContactInfo';
 import MealPlan from './page/MealPlan';
 import Password from './page/Password';
 import Base from './page/BasePage';
+import { AccountDetailProvider, useAccountDetail } from "./context/account-detail.context";
 
 
 // for more information on react router: https://v5.reactrouter.com/web/guides/quick-start
@@ -30,5 +32,6 @@ const App = () => {
         </Routes>
     );
 };
+
 
 export default App;
