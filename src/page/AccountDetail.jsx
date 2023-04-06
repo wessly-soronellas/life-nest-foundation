@@ -118,9 +118,8 @@ const styles = (theme) => ({
         gridTemplateColumns:  'auto auto auto',
         gridTemplateRows: 'auto auto auto auto',
         '& .section1': {
-            gridColumn: '1 / span 1',
+            gridColumn: '1 / span 2',
             fontFamily: fontFamilyHeader,
-            backgroundColor: iris200,
             color: colorTextPrimary,
             fontWeight: fontWeightBold,
             fontSize: fontSizeHeader4,
@@ -129,34 +128,12 @@ const styles = (theme) => ({
             margin: "auto"
         },
         '& .main1': {
-            gridColumn: '2 / span 2',
+            gridColumn: '1 / span 2',
             fontFamily: fontFamilyHeader,
             backgroundColor: iris300,
             color: colorTextPrimary,
             fontWeight: fontWeightBold,
             fontSize: fontSizeHeader4,
-            width: "100%",
-            height: heightFluid,
-            margin: "auto"
-        },
-        '& .section2': {
-            gridColumn: '1 / span 1',
-            fontFamily: fontFamilyHeader,
-            backgroundColor: iris300,
-            color: colorTextPrimary,
-            fontWeight: fontWeightBold,
-            fontSize: fontSizeHeader4,
-            width: "100%",
-            height: heightFluid,
-            margin: "auto"
-        },
-        '& .section3': {
-            gridColumn: '1 / span 1',
-            fontFamily: fontFamilyHeader,
-            backgroundColor: iris400,
-            color: colorTextPrimary,
-            fontSize: fontSizeHeader4,
-            fontWeight: fontWeightBold,
             width: "100%",
             height: heightFluid,
             margin: "auto"
@@ -306,8 +283,6 @@ function BasePage(props){
         <div>
             <div className={classnames(standardSpacingClasses, classes.grid1Definition)}>
                     <div className="section1" align="center">
-                        section1
-                        <Card>
                             {balanceData && (
                                 <Dropdown
                                 label="Terms"
@@ -342,34 +317,29 @@ function BasePage(props){
                                     }
                             </Dropdown>
                             )}
-                        </Card>
 
-                        section2
-                        <Card>
-                            Cafe Status
-                        </Card>
-                    section3
-                        <Card>
-                        Contact Info
-                       </Card>
                     </div>
                     <div className="main1" align="center">
-                    main1
-                        <Card>
-                        {detailData&&(
+                        {detailData &&(
                     <div id="note" className = {classes.balanceContainer}>
-                    <div id="alert" className = {classes.alert}>
-                        <Typography align="center" gutterBottom>
-                            <StatusLabel type="draft" text="Alert: Your account balance is due by the end of the 2nd week of each quarter. Make sure your balance is zero to avoid disenrollment and a 25% fee."/>
-                        </Typography>
-                    </div>
-                    <div id="button-container" className={classes.button}>
+                    {(detailData && !detailLoading) && (
+                        <div id="alert" className = {classes.alert}>
+                            <Typography align="center" gutterBottom>
+                                <StatusLabel type="draft" text="Alert: Your account balance is due by the end of the 2nd week of each quarter. Make sure your balance is zero to avoid disenrollment and a 25% fee."/>
+                            </Typography>
+                        </div>
+                    )}
+                    {(balanceDetailChild && balanceDetailChild.length > 0) && (
+                        <div id="button-container" className={classes.button}>
                         <Button color="primary" onClick={toggleExpandAll}> Expand All </Button>
                             <Typography variant="body3" gutterBottom>
                                 Note: Toggle the EXPAND ALL button to open and/or close all items.
                             </Typography>
-                    </div>
-                    <Paper className={classes.headerContainer}>
+                        </div>
+                    )}
+                    {(termSelected && detailData) && (
+                        <Fragment>
+                        <Paper className={classes.headerContainer}>
                         <Table id="parent">
                             <TableHead>
                                 <TableRow>
@@ -429,8 +399,7 @@ function BasePage(props){
                                                 </Table>
                                                 </Paper>
                                             )}
-                                        expand={open}
-                                        onExpand={toggleOpen}>
+                                        expand={open}>
                                             <TableCell >{obj.displayName}</TableCell>
                                             <TableCell>{`${new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(Math.abs(obj.amount))}`}</TableCell>
                                             <TableCell>
@@ -470,21 +439,23 @@ function BasePage(props){
                             </Table>
                         </Paper>
                     </div>
+                    <div className="payNow" align="right">
+                        <TextLink
+                            id={`make_payment`}
+                            href="https://secure.touchnet.net/C20966_tsa/web/caslogin.jsp"
+                        >
+                            Make a payment
+                        </TextLink>
+                    </div>
+                        </Fragment>
+                    )}
+                    {(termSelected && detailLoading) && (
+                        <>
+                            <CircularProgress aria-valuetext="Step 2: Copying files" />
+                        </>
+                    )}
                 </div>
                 )}
-                        </Card>
-                    </div>
-                    <div className="section2" align="center">
-                    section2
-                        <Card>
-                            Cafe Status
-                        </Card>
-                    </div>
-                    <div className="section3" align="center">
-                    section3
-                       <Card>
-                        Contact Info
-                       </Card>
                     </div>
             </div>
         </div>

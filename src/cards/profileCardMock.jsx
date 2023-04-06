@@ -12,7 +12,8 @@ import {
 import {
     Icon
 } from '@ellucian/ds-icons/lib';
-
+import {
+ } from '@ellucian/react-design-system/core/styles/tokens';
 import PasswordWidget from '../components/pwdExpiry.card';
 import MealPlanWidget from '../components/mealPlan.card';
 import ContactInfoWidget from '../components/contactInfo.card';
@@ -132,7 +133,7 @@ function FullWidthGrid(props)  {
 
 
     return (
-        <div>
+        <>
             <div id='header-container' className={classes.root}>
                     <Tabs
                         onChange={onTabClick}
@@ -165,7 +166,7 @@ function FullWidthGrid(props)  {
                 {contactOpen && (<><ContactInfoWidget /></>)}
                 {accountOpen && (<><AccountBalanceWidget /></>)}
             </div>
-        </div>
+        </>
     );
 }
 

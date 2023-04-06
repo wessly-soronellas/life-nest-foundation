@@ -31,9 +31,7 @@ import {
 
  const styles = theme => ({
     root: {
-        padding: spacingInset20,
-        backgroundColor: colorBrandNeutral200,
-        height: heightFluid
+        padding: spacingInset20
     },
     grid2Definition: {
         gridTemplateColumns:  '1fr 1fr 1fr ',
@@ -122,9 +120,10 @@ import {
         border: `${borderWidthThin} solid ${theme.palette.grey[400]}`
     },
     moreInfo: {
-        margin: layout10
+        height: heightFluid
     }
 });
+
 
 
 function MealPlanWidget(props) {
@@ -138,7 +137,7 @@ function MealPlanWidget(props) {
     const [boardPlan, setBoardPlan] = useState();
     const [hasBoardPlan, setHasBoardPlan] = useState();
     const standardSpacingClasses= getSpacingStyles({
-        outerSpacing: false,
+        outerSpacing: true,
         spacing: 'none'
     }, spacingType.LAYOUT);
 
@@ -220,7 +219,7 @@ function MealPlanWidget(props) {
                             Board Plan
                         </div>
                         <div className="boardplanContent" align="center" >
-                            <Typography variant="h4" style={{padding: spacingInset20}}gutterBottom>No meal plan on file</Typography>
+                            <Typography variant="h4" style={{padding: spacingInset20}}gutterBottom>N/A</Typography>
                         </div>
                     </>
                 )

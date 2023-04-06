@@ -62,41 +62,9 @@ const Navigation = ({classes}) => {
     return (
         <Fragment>
             <div className={classes.navContainer} id='navigation-container'>
-                <div className={classes.logoContainer}>
-                    <Link to={`/`}>
-                    <Typography>
-                        <Icon name="lock" /> Password Expiration
-                    </Typography>
-                    </Link>
-                </div>
-                <div className={classes.navLinks}>
-                    <div className={classes.navLink}>
-                        <Link to={`/meal`}>
-                            <Typography><Icon name="dining" /> Meal Plan </Typography>
-                        </Link>
-                    </div>
-                    <div className={classes.navLink}>
-                        <Link to={`/password`}>
-                        <Typography>
-                            <Icon name="lock" /> Password Expiration
-                        </Typography>
-                        </Link>
-                    </div>
-                    <div className={classes.navLink}>
-                        <Link to={`/account`}>
-                        <Typography>
-                            <Icon name="institution" /> Account Balance
-                        </Typography>
-                        </Link>
-                    </div>
-                    <div className={classes.navLink}>
-                        <Link to={`/contact`}>
-                        <Typography>
-                            <Icon name="address-card" /> Contact Information
-                        </Typography>
-                        </Link>
-                    </div>
-                </div>
+                {
+                    // Links will go here in other versions
+                }
             </div>
             <Outlet />
         </Fragment>
