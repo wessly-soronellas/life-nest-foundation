@@ -104,6 +104,26 @@ export async function fetchProfileData({queryKey}){
     }
 }
 
+export async function confirmProfileData({queryKey}){
+    const [_key, {getExtensionJwt, base, endpoint, method, body}] = queryKey;
+
+    try {
+        const url = `${base}/${endpoint}`;
+        const jwt = await getExtensionJwt();
+        return fetch(url, {
+            method: method,
+            headers: {
+                'Authorization': `Bearer ${jwt}`
+            },
+            body: JSON.stringify(body)
+        })
+        .then(res => res.json())
+    } catch (error) {
+        console.log(error);
+        return error
+    }
+}
+
 export async function fetchBalanceDetail({queryKey}){
     const [_key, {getExtensionJwt, extensionId, cardId, manifestType, queryId, url: ethosUrl, termFromConfig, termFromConfigTitle, base, endpoint, method, term}] = queryKey
 

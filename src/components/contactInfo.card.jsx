@@ -234,7 +234,9 @@ function ContactInformationWidget(props) {
     // Experience SDK hooks
     const { navigateToPage } = useCardControl();
     const { setErrorMessage, setLoadingStatus } = useExtensionControl();
-    const {data: contactData, isLoading: contactLoading, isError: contactIsError, error: contactError} = useContactInformation();
+    const {data: contactData, isLoading: contactLoading, isError: contactIsError, error: contactError,
+        confirmData: confirmContactData, confirmIsLoading: confirmContactLoading, confirmIsError: confirmContactIsError, confirmError: confirmContactError, setConfirmBody, setConfirmContact
+    } = useContactInformation();
     const standardSpacingClasses= getSpacingStyles({
         outerSpacing: false,
         spacing: 'none'
@@ -267,11 +269,12 @@ function ContactInformationWidget(props) {
     const [phoneOpen, setPhoneOpen] = useState(false);
     const [addressOpen, setAddressOpen] = useState(false);
     const [emailOpen, setEmailOpen] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
 
     useEffect(() => {
-        setLoadingStatus(contactLoading);
-    }, [contactLoading])
+        setLoadingStatus(contactLoading|| confirmContactLoading);
+    }, [contactLoading, confirmContactLoading])
 
     useEffect(() => {
         if (contactData) {
@@ -353,13 +356,22 @@ function ContactInformationWidget(props) {
                 iconColor: colorFillAlertError
             });
         }
-    }, [contactIsError, contactError, setErrorMessage]);
 
-    const onConfirmClick = useCallback(() => {
-        // open the page
-        navigateToPage({route: '/contact'});
-    }, [navigateToPage]);
+        if (confirmContactError) {
+            setErrorMessage({
+                headerMessage: 'Error occurred while updating contact information',
+                textMessage: JSON.stringify(confirmContactError),
+                iconName: 'warning',
+                iconColo: colorFillAlertError
+            })
+        }
+    }, [contactIsError, contactError, setErrorMessage, confirmContactIsError, confirmContactError]);
 
+    const onConfirmClick = () => {
+        setConfirmOpen(false);
+        setConfirmContact(true);
+        setConfirmBody({confirmAddress: true, confirmEmail: true, confirmPhone:true});
+    }
     const onUpdateClick = () => window.open('https://eaglenet.life.edu/Student/UserProfile')
 
     // Confirmation Dialog section (PhoneContent, AddressContent, EmailContent, and CompleteContent)
@@ -478,6 +490,14 @@ function ContactInformationWidget(props) {
         )
     }
 
+    function ConfirmContent(){
+        return (
+            <>
+                <Typography>Please note that by clicking Cofirm, you are updating all information on file as accurate and up to date. Please review the information on file before confirming. </Typography>
+            </>
+        )
+    }
+
 
     return (
         <div className={classes.root}>
@@ -533,8 +553,8 @@ function ContactInformationWidget(props) {
                     </div>
                     <div className="buttonGroup" align="center">
                     <ButtonGroup>
-                        <Button onClick={onConfirmClick} color="secondary">
-                            Confirm
+                        <Button onClick={() => setConfirmOpen(true)} color="secondary">
+                            Confirm All
                         </Button>
                         <Button onClick={onUpdateClick}>
                             Update
@@ -575,6 +595,17 @@ function ContactInformationWidget(props) {
                             title="Confirm email information?"
                             content={(<EmailContent />)}
                             contentText="Click Confirm if the email address(es) below is/are accurate as of today. Click Edit to update email information."
+                        />
+                    </div>
+                    <div className="confirmDialog">
+                        <ConfirmationDialog
+                            open={confirmOpen}
+                            primaryActionOnClick={onConfirmClick}
+                            primaryActionText="Confirm All"
+                            secondaryActionOnClick={() => setConfirmOpen(false)}
+                            secondaryActionText="Cancel"
+                            title="Confirm all information?"
+                            content={(<ConfirmContent />)}
                         />
                     </div>
                 </div>

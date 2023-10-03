@@ -7,11 +7,11 @@ import {useCache, useCardInfo, useData} from '@ellucian/experience-extension/ext
 const Context = createContext();
 const cacheKey = 'contactInfo';
 const queryClient = new QueryClient();
-import {fetchProfileData} from '../hooks/useProfileInfo';
+import {fetchProfileData, confirmProfileData} from '../hooks/useProfileInfo';
 
 function ContactInformationProviderInternal({children}) {
 
-    const {getItem, storeItem} = useCache();
+    const {getItem, storeItem, removeItem} = useCache();
     const {configuration, cardConfiguration} = useCardInfo();
     const {getExtensionJwt} = useData();
     const {baseApi: base} = configuration || cardConfiguration || {};
@@ -20,12 +20,24 @@ function ContactInformationProviderInternal({children}) {
     const [ loadContactDataFromQuery, setLoadContactDataFromQuery] = useState(false);
     const [ contactCachedData, setContactCachedData ] = useState();
 
+    const [confirmContact, setConfirmContact] = useState(false);
+    const [confirmBody, setConfirmBody] = useState(false);
+
 
     const {data: contactData, isLoading: contactLoading, isError: contactIsError, error: contactError} = useQuery(
         ["contactInfo", {getExtensionJwt, base, endpoint: 'profile', method: 'GET'}],
         fetchProfileData,
         {
             enabled: Boolean(loadContactDataFromQuery && getExtensionJwt && base),
+            placeholderData: contactCachedData
+        }
+    )
+
+    const {data: confirmContactData, isLoading: confirmContactLoading, isError: confirmContactIsError, error: confirmContactError} = useQuery(
+        ["confirmContactInfo", {getExtensionJwt, base, endpoint: 'profile', method: 'PUT', body: confirmBody, confirmContact}],
+        confirmProfileData,
+        {
+            enabled: Boolean(getExtensionJwt && base && confirmBody && confirmContact),
             placeholderData: contactCachedData
         }
     )
@@ -57,14 +69,35 @@ function ContactInformationProviderInternal({children}) {
         }
     }, [contactData]);
 
+    useEffect(() => {
+        if (confirmContactData){
+            (async () => {
+                await removeItem({key: cacheKey});
+                unstable_batchedUpdates(() => {
+                    setLoadContactDataFromCache(false);
+                    setLoadContactDataFromQuery(true);
+                    setConfirmContact(false);
+                })
+            })();
+        }
+    }, [confirmContactData, confirmBody, confirmContact])
+
     const contextValueContact = useMemo(() => {
         return {
             data: contactData || contactCachedData,
             isError: contactIsError,
             isLoading: contactLoading,
-            error: contactError
+            error: contactError,
+            confirmContactData,
+            confirmContactLoading,
+            confirmContactError,
+            confirmBody,
+            confirmContact,
+            setConfirmBody: (body) => setConfirmBody(body),
+            setConfirmContact: (state) => setConfirmContact(state)
         }
-    }, [contactCachedData, contactData, contactError, contactLoading]);
+    }, [contactCachedData, contactData, contactError, contactLoading,
+        confirmContactData, confirmContactLoading, confirmContactError]);
 
 
     useEffect(() => {
