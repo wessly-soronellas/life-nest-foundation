@@ -2,6 +2,7 @@ import React, {createContext, useContext, useEffect, useMemo, useState} from 're
 import PropTypes from 'prop-types';
 // eslint-disable-next-line camelcase
 import {unstable_batchedUpdates} from 'react-dom';
+import {ReactQueryDevtools} from 'react-query/devtools';
 import {QueryClient, QueryClientProvider, useQuery} from 'react-query';
 import {useCache, useCardInfo, useData} from '@ellucian/experience-extension/extension-utilities';
 const Context = createContext();
@@ -11,14 +12,11 @@ import {fetchProfileData, confirmProfileData} from '../hooks/useProfileInfo';
 
 function ContactInformationProviderInternal({children}) {
 
-    const {getItem, storeItem, removeItem} = useCache();
     const {configuration, cardConfiguration} = useCardInfo();
     const {getExtensionJwt} = useData();
     const {baseApi: base} = configuration || cardConfiguration || {};
 
-    const [ loadContactDataFromCache, setLoadContactDataFromCache] = useState(true);
-    const [ loadContactDataFromQuery, setLoadContactDataFromQuery] = useState(false);
-    const [ contactCachedData, setContactCachedData ] = useState();
+    const [ loadContactDataFromQuery, setLoadContactDataFromQuery] = useState(true);
 
     const [confirmContact, setConfirmContact] = useState(false);
     const [confirmBody, setConfirmBody] = useState(false);
@@ -28,8 +26,7 @@ function ContactInformationProviderInternal({children}) {
         ["contactInfo", {getExtensionJwt, base, endpoint: 'profile', method: 'GET'}],
         fetchProfileData,
         {
-            enabled: Boolean(loadContactDataFromQuery && getExtensionJwt && base),
-            placeholderData: contactCachedData
+            enabled: Boolean(loadContactDataFromQuery && getExtensionJwt && base)
         }
     )
 
@@ -37,11 +34,11 @@ function ContactInformationProviderInternal({children}) {
         ["confirmContactInfo", {getExtensionJwt, base, endpoint: 'profile', method: 'PUT', body: confirmBody, confirmContact}],
         confirmProfileData,
         {
-            enabled: Boolean(getExtensionJwt && base && confirmBody && confirmContact),
-            placeholderData: contactCachedData
+            enabled: Boolean(getExtensionJwt && base && confirmBody && confirmContact)
         }
     )
 
+    /*
     useEffect(() => {
         if (loadContactDataFromCache) {
             (async () => {
@@ -60,31 +57,28 @@ function ContactInformationProviderInternal({children}) {
             })();
         }
     }, [loadContactDataFromCache]);
+    */
 
     useEffect(() => {
         if (contactData) {
-            storeItem({data: contactData, key: cacheKey});
             setLoadContactDataFromQuery(false);
-            setLoadContactDataFromCache(false);
         }
     }, [contactData]);
 
     useEffect(() => {
-        if (confirmContactData){
-            (async () => {
-                await removeItem({key: cacheKey});
-                unstable_batchedUpdates(() => {
-                    setLoadContactDataFromCache(false);
-                    setLoadContactDataFromQuery(true);
-                    setConfirmContact(false);
-                })
-            })();
+        if (confirmContactData?.status == "ok") {
+            console.log("update success")
+            setConfirmContact(false);
+            setConfirmBody(null);
+            setLoadContactDataFromQuery(true);
+            queryClient.refetchQueries(['contactInfo']);
+            setLoadContactDataFromQuery(false);
         }
-    }, [confirmContactData, confirmBody, confirmContact])
+    }, [confirmContactData]);
 
     const contextValueContact = useMemo(() => {
         return {
-            data: contactData || contactCachedData,
+            data: contactData,
             isError: contactIsError,
             isLoading: contactLoading,
             error: contactError,
@@ -96,7 +90,7 @@ function ContactInformationProviderInternal({children}) {
             setConfirmBody: (body) => setConfirmBody(body),
             setConfirmContact: (state) => setConfirmContact(state)
         }
-    }, [contactCachedData, contactData, contactError, contactLoading,
+    }, [contactData, contactError, contactLoading,
         confirmContactData, confirmContactLoading, confirmContactError]);
 
 
@@ -125,6 +119,7 @@ export function ContactInformationProvider({children}){
             <ContactInformationProviderInternal>
                 {children}
             </ContactInformationProviderInternal>
+            <ReactQueryDevtools />
         </QueryClientProvider>
     )
 }

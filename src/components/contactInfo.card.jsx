@@ -234,8 +234,17 @@ function ContactInformationWidget(props) {
     // Experience SDK hooks
     const { navigateToPage } = useCardControl();
     const { setErrorMessage, setLoadingStatus } = useExtensionControl();
-    const {data: contactData, isLoading: contactLoading, isError: contactIsError, error: contactError,
-        confirmData: confirmContactData, confirmIsLoading: confirmContactLoading, confirmIsError: confirmContactIsError, confirmError: confirmContactError, setConfirmBody, setConfirmContact
+    const {
+        data: contactData,
+        isLoading: contactLoading,
+        isError: contactIsError,
+        error: contactError,
+        confirmData: confirmContactData,
+        confirmIsLoading: confirmContactLoading,
+        confirmIsError: confirmContactIsError,
+        confirmError: confirmContactError,
+        setConfirmBody,
+        setConfirmContact
     } = useContactInformation();
     const standardSpacingClasses= getSpacingStyles({
         outerSpacing: false,
